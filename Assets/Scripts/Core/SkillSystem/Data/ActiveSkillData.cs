@@ -1,6 +1,8 @@
 using UnityEngine;
 
-/* 액티브 스킬 데이터 원형 */
+/// <summary>
+/// 액티브 스킬 데이터 원형
+/// </summary>
 [CreateAssetMenu(fileName = "001_ActiveSkill", menuName = "Skill/Active")]
 public class ActiveSkillData : SkillData
 {
@@ -40,15 +42,13 @@ public class ActiveSkillData : SkillData
     public float baseAoeRadius;
     [Tooltip("AOE 실제 피해/효과가 적용되기까지의 지연 시간")]
     public float aoeDelay;
-    [Tooltip("지속형 AOE 스킬의 효과 유지 시간")]
+    [Tooltip("지속형 AOE 스킬의 효과 유지 시간(0 이상이면 장판형 스킬)")]
     public float aoeDuration;
     [Tooltip("지속형 AOE 스킬 피해 적용 간격(aoeDuration이 0보다 클 경우 유효)")]
     public float aoeHitInterval;
 
     /* Melee (근접) 타입 스킬 */
     [Header("Melee Attributes")]
-    [Tooltip("근접 스킬 재생 애니메이터 트리거")]
-    public string animationTriggerName;
     [Tooltip("근접 스킬 공격 각도 (부채꼴 형태, 0이면 일자형).")]
     [Range(0f, 360f)]
     public float baseMeleeArcAngle;

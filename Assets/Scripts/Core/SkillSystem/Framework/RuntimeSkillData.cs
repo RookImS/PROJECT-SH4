@@ -1,180 +1,267 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
+/// <summary>
+/// 패시브 효과가 적용된 최종 스킬 능력치를 담는 런타임 데이터 클래스
+/// </summary>
 public class RuntimeSkillData
 {
-    // 핵심 능력치 (CoreSkillStats 구조체로 묶음)
-    public CoreSkillStats currentCoreStats; // 패시브가 적용된 최종 핵심 스탯
-
-    public ActiveSkillData baseActiveData; // 원본 ActiveSkillData 참조
-
-    // 기타 타입별 현재 스탯들 (개별 유지) - 이 스탯들은 패시브에 의해 직접 수정되지 않음
-    public float currentProjectileSpeed;
-    public bool currentCanPierceTargets;
-    public int currentMaxTargetsHit;
-    public float currentAoeDelay;
-    public float currentAoeDuration;
-    public float currentAoeHitInterval;
-    public string currentAnimationTriggerName;
-
-    // EffectMagnitude가 적용된 최종 타입별 크기/반경/각도 값 (계산된 속성)
     /// <summary>
-    /// 투사체 스킬의 최종 크기입니다. <see cref="SkillAttackType.Projectile"/>일 때 유효합니다.
-    /// <c>baseActiveData.baseProjectileSize</c>에 <c>currentCoreStats.effectMagnitude</c>를 곱하여 결정됩니다.
+    /// 원본 액티브 스킬 데이터 참조
     /// </summary>
-    public float currentProjectileSize;
+    public ActiveSkillData baseActiveData;
 
     /// <summary>
-    /// AOE 스킬의 최종 반경입니다. <see cref="SkillAttackType.AreaOfEffect"/>일 때 유효합니다.
-    /// <c>baseActiveData.baseAoeRadius</c>에 <c>currentCoreStats.effectMagnitude</c>를 곱하여 결정됩니다.
+    /// 적용된 스탯 보정 목록
     /// </summary>
-    public float currentAoeRadius;
+    public List<SkillStatModEntry> appliedStatModifiers;
 
     /// <summary>
-    /// 근접 스킬의 최종 공격 아크 각도입니다. <see cref="SkillAttackType.Melee"/>일 때 유효합니다.
-    /// <c>baseActiveData.baseMeleeArcAngle</c>에 <c>currentCoreStats.effectMagnitude</c>를 곱하여 결정됩니다.
+    /// 부착된 런타임 패시브 효과 목록
     /// </summary>
-    public float currentMeleeArcAngle;
-
-
     public List<IRuntimePassiveEffect> attachedRuntimePassiveEffects;
 
     /// <summary>
-    /// <c>RuntimeSkillData</c>의 새로운 인스턴스를 초기화합니다.
+    /// 최종 계산된 스킬 핵심 스탯
     /// </summary>
-    /// <param name="activeData">이 런타임 스킬 데이터가 기반할 <see cref="ActiveSkillData"/> 원본입니다.</param>
-    /// <remarks>
-    /// 생성 시, <paramref name="activeData"/>의 기본값으로 <c>currentCoreStats</c>를 직접 복사하고,
-    /// 기타 타입별 스탯들을 초기화합니다.
-    /// </remarks>
+    public CoreSkillStats currentCoreStats;
+
+    // 아래 값들은 패시브에 의해 직접 수정되지 않는 고정 특성 (투사체, AOE 스킬 관련)
+    public float currentProjectileSpeed;      // 투사체 속도
+    public bool currentCanPierceTargets;      // 관통 여부
+    public int currentMaxTargetsHit;          // 관통 가능한 적 수
+    public float currentAoeDelay;             // AOE 지연 시간
+    public float currentAoeDuration;          // AOE 지속 시간
+    public float currentAoeHitInterval;       // AOE 타격 간격
+
+    // EffectMagnitude가 적용된 최종 크기/반경/각도
+    public float currentProjectileSize;       // 투사체 크기
+    public float currentAoeRadius;            // AOE 반경
+    public float currentMeleeArcAngle;        // 근접 공격 각도
+
+    
+    /// <summary>
+    /// 생성자. 원본 액티브 스킬 데이터로 초기화
+    /// </summary>
+    /// <param name="activeData">원본 액티브 스킬 데이터</param>
     public RuntimeSkillData(ActiveSkillData activeData)
     {
         baseActiveData = activeData;
+        if (baseActiveData == null)
+        {
+            Debug.LogError("RuntimeSkillData 생성 시 baseActiveData가 null입니다.");
+            return;
+        }
 
-        // ActiveSkillData의 coreStats 값을 RuntimeSkillData의 currentCoreStats로 직접 복사합니다.
-        // CoreSkillStats는 struct(값 타입)이므로 이 할당은 깊은 복사(deep copy)를 수행합니다.
-        currentCoreStats = activeData.coreStats;
+        // 적용된 스탯 보정 목록 및 부착된 런타임 패시브 효과 목록초기화
+        appliedStatModifiers = new List<SkillStatModEntry>();
+        attachedRuntimePassiveEffects = new List<IRuntimePassiveEffect>();
+        
+        // 핵심 스탯 초기화
+        currentCoreStats = activeData.coreStats;  
 
-        // 기타 타입별 스탯 초기화 (ActiveSkillData에서 직접 복사)
+        // 고정 특성 초기화
         currentProjectileSpeed = activeData.projectileSpeed;
         currentCanPierceTargets = activeData.canPierceTargets;
         currentMaxTargetsHit = activeData.maxTargetsHit;
         currentAoeDelay = activeData.aoeDelay;
         currentAoeDuration = activeData.aoeDuration;
         currentAoeHitInterval = activeData.aoeHitInterval;
-        currentAnimationTriggerName = activeData.animationTriggerName;
 
-        // EffectMagnitude에 의해 결정되는 최종 크기/반경/각도 초기화
-        // baseActiveData의 기본값에 currentCoreStats.effectMagnitude를 곱하여 계산
-        currentProjectileSize = activeData.baseProjectileSize * currentCoreStats.effectMagnitude;
-        currentAoeRadius = activeData.baseAoeRadius * currentCoreStats.effectMagnitude;
-        currentMeleeArcAngle = activeData.baseMeleeArcAngle * currentCoreStats.effectMagnitude;
-
-        attachedRuntimePassiveEffects = new List<IRuntimePassiveEffect>();
+        // 파생 스탯 초기화
+        UpdateDerivedEffectMagnitudes();
     }
 
     /// <summary>
-    /// 단일 스탯 수정 항목(<see cref="SkillStatModEntry"/>)을 이 <c>RuntimeSkillData</c>에 적용합니다.
+    /// 모든 패시브 스탯 보정을 적용해 최종 스탯을 재계산한다.
     /// </summary>
-    /// <param name="modEntry">적용할 스탯 수정 항목입니다.</param>
-    /// <remarks>
-    /// 이 메서드는 <see cref="SkillStatType"/>에 따라 적절한 스탯 필드를 찾아 지정된 <see cref="SkillStatModType"/> 방식으로 값을 수정합니다.
-    /// <c>EffectMagnitude</c>가 변경되면 종속된 최종 타입별 크기/반경/각도 스탯들도 함께 업데이트됩니다.
-    /// </remarks>
-    public void ApplyStatModifier(SkillStatModEntry modEntry)
+    /// <param name="groupedModEntries">스탯 타입별 보정 목록</param>
+    public void RecalculateAllStats(Dictionary<SkillStatType, List<SkillStatModEntry>> groupedModEntries)
     {
-        switch (modEntry.skillStatType)
+        currentCoreStats = baseActiveData.coreStats; // 원본으로 초기화
+
+        foreach (SkillStatType statType in Enum.GetValues(typeof(SkillStatType)))
         {
-            // CoreSkillStats 내의 float 스탯들
+            if (!groupedModEntries.TryGetValue(statType, out List<SkillStatModEntry> mods))
+                continue;
+
+            // 보정 타입별로 분류
+            List<float> additiveMods = new List<float>();
+            List<float> multiplicativeMods = new List<float>();
+            List<float> overrideMods = new List<float>();
+
+            foreach (var mod in mods)
+            {
+                if (mod.skillStatModType == SkillStatModType.Override)
+                    overrideMods.Add(mod.value);
+                else if (mod.skillStatModType == SkillStatModType.Additive)
+                    additiveMods.Add(mod.value);
+                else if (mod.skillStatModType == SkillStatModType.Multiplicative)
+                    multiplicativeMods.Add(mod.value);
+            }
+
+            // 스탯별로 재계산
+            switch (statType)
+            {
+                case SkillStatType.BaseDamage:
+                    RecalculateSingleStat(ref currentCoreStats.baseDamage, baseActiveData.coreStats.baseDamage, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.Cooldown:
+                    RecalculateSingleStat(ref currentCoreStats.cooldown, baseActiveData.coreStats.cooldown, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.CastTime:
+                    RecalculateSingleStat(ref currentCoreStats.castTime, baseActiveData.coreStats.castTime, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.ResourceCost:
+                    RecalculateSingleStat(ref currentCoreStats.resourceCost, baseActiveData.coreStats.resourceCost, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.CharacterAttackPowerMultiplier:
+                    RecalculateSingleStat(ref currentCoreStats.characterAttackPowerMultiplier, baseActiveData.coreStats.characterAttackPowerMultiplier, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.FlatDamageAdded:
+                    RecalculateSingleStat(ref currentCoreStats.flatDamageAdded, baseActiveData.coreStats.flatDamageAdded, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.BaseCriticalChance:
+                    RecalculateSingleStat(ref currentCoreStats.baseCriticalChance, baseActiveData.coreStats.baseCriticalChance, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.BaseCriticalDamageMultiplier:
+                    RecalculateSingleStat(ref currentCoreStats.baseCriticalDamageMultiplier, baseActiveData.coreStats.baseCriticalDamageMultiplier, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.Range:
+                    RecalculateSingleStat(ref currentCoreStats.range, baseActiveData.coreStats.range, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                case SkillStatType.EffectMagnitude:
+                    RecalculateSingleStat(ref currentCoreStats.effectMagnitude, baseActiveData.coreStats.effectMagnitude, additiveMods, multiplicativeMods, overrideMods, statType);
+                    UpdateDerivedEffectMagnitudes(); // EffectMagnitude 변경 시 파생 스탯도 갱신
+                    break;
+                case SkillStatType.HitCount:
+                    RecalculateSingleIntStat(ref currentCoreStats.hitCount, baseActiveData.coreStats.hitCount, additiveMods, multiplicativeMods, overrideMods, statType);
+                    break;
+                default:
+                    Debug.LogWarning($"Unknown or unhandled modifiable stat type in RecalculateAllStats: {statType}.");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// float 스탯에 합연산, 곱연산, 덮어쓰기를 적용해 최종값 계산
+    /// </summary>
+    private void RecalculateSingleStat(ref float targetStat, float baseValue, List<float> additiveMods, List<float> multiplicativeMods, List<float> overrideMods, SkillStatType statType)
+    {
+        // 합연산 적용
+        float calculatedValue = baseValue;
+        foreach (float mod in additiveMods)
+            calculatedValue += mod;
+
+        // 곱연산 적용
+        float multiplicativeFactor = 1.0f;
+        foreach (float mod in multiplicativeMods)
+            multiplicativeFactor *= (1.0f + mod);
+        calculatedValue *= multiplicativeFactor;
+
+        // 덮어쓰기 중 가장 유리한 값 선택
+        float? bestOverrideValue = null;
+        if (overrideMods != null && overrideMods.Any())
+        {
+            bestOverrideValue = overrideMods[0];
+            for (int i = 1; i < overrideMods.Count; i++)
+            {
+                if (IsValueBetter(statType, bestOverrideValue.Value, overrideMods[i]))
+                    bestOverrideValue = overrideMods[i];
+            }
+        }
+
+        // 최종값 결정
+        if (bestOverrideValue.HasValue)
+        {
+            if (IsValueBetter(statType, calculatedValue, bestOverrideValue.Value))
+                targetStat = bestOverrideValue.Value;
+            else
+                targetStat = calculatedValue;
+        }
+        else
+        {
+            targetStat = calculatedValue;
+        }
+    }
+
+    /// <summary>
+    /// int 스탯에 합연산, 곱연산, 덮어쓰기를 적용해 최종값 계산
+    /// </summary>
+    private void RecalculateSingleIntStat(ref int targetStat, int baseValue, List<float> additiveMods, List<float> multiplicativeMods, List<float> overrideMods, SkillStatType statType)
+    {
+        // float으로 계산 후 int로 변환
+        float calculatedFloatValue = baseValue;
+        foreach (float mod in additiveMods)
+            calculatedFloatValue += mod;
+
+        float multiplicativeFactor = 1.0f;
+        foreach (float mod in multiplicativeMods)
+            multiplicativeFactor *= (1.0f + mod);
+        calculatedFloatValue *= multiplicativeFactor;
+
+        float? bestOverrideValue = null;
+        if (overrideMods != null && overrideMods.Any())
+        {
+            bestOverrideValue = overrideMods[0];
+            for (int i = 1; i < overrideMods.Count; i++)
+            {
+                if (IsValueBetter(statType, bestOverrideValue.Value, overrideMods[i]))
+                    bestOverrideValue = overrideMods[i];
+            }
+        }
+
+        if (bestOverrideValue.HasValue)
+        {
+            if (IsValueBetter(statType, calculatedFloatValue, bestOverrideValue.Value))
+                targetStat = Mathf.RoundToInt(bestOverrideValue.Value);
+            else
+                targetStat = Mathf.RoundToInt(calculatedFloatValue);
+        }
+        else
+        {
+            targetStat = Mathf.RoundToInt(calculatedFloatValue);
+        }
+    }
+
+    /// <summary>
+    /// EffectMagnitude에 따라 파생 스탯(크기, 반경, 각도) 갱신
+    /// </summary>
+    private void UpdateDerivedEffectMagnitudes()
+    {
+        currentProjectileSize = baseActiveData.baseProjectileSize * currentCoreStats.effectMagnitude;
+        currentAoeRadius = baseActiveData.baseAoeRadius * currentCoreStats.effectMagnitude;
+        currentMeleeArcAngle = baseActiveData.baseMeleeArcAngle * currentCoreStats.effectMagnitude;
+    }
+
+    /// <summary>
+    /// statType 기준으로 newValue가 currentValue보다 유리한지 판단
+    /// </summary>
+    private bool IsValueBetter(SkillStatType statType, float currentValue, float newValue)
+    {
+        switch (statType)
+        {
+            // 높을수록 좋은 스탯
             case SkillStatType.BaseDamage:
-                ApplyValue(ref currentCoreStats.baseDamage, modEntry.value, modEntry.skillStatModType);
-                break;
-            case SkillStatType.Cooldown:
-                ApplyValue(ref currentCoreStats.cooldown, modEntry.value, modEntry.skillStatModType);
-                break;
-            case SkillStatType.CastTime:
-                ApplyValue(ref currentCoreStats.castTime, modEntry.value, modEntry.skillStatModType);
-                break;
-            case SkillStatType.ResourceCost:
-                ApplyValue(ref currentCoreStats.resourceCost, modEntry.value, modEntry.skillStatModType);
-                break;
             case SkillStatType.CharacterAttackPowerMultiplier:
-                ApplyValue(ref currentCoreStats.characterAttackPowerMultiplier, modEntry.value, modEntry.skillStatModType);
-                break;
             case SkillStatType.FlatDamageAdded:
-                ApplyValue(ref currentCoreStats.flatDamageAdded, modEntry.value, modEntry.skillStatModType);
-                break;
             case SkillStatType.BaseCriticalChance:
-                ApplyValue(ref currentCoreStats.baseCriticalChance, modEntry.value, modEntry.skillStatModType);
-                break;
             case SkillStatType.BaseCriticalDamageMultiplier:
-                ApplyValue(ref currentCoreStats.baseCriticalDamageMultiplier, modEntry.value, modEntry.skillStatModType);
-                break;
-            case SkillStatType.Range: // Range 스탯 수정 로직
-                ApplyValue(ref currentCoreStats.range, modEntry.value, modEntry.skillStatModType);
-                break;
-            case SkillStatType.EffectMagnitude: // EffectMagnitude 스탯 수정 로직
-                ApplyValue(ref currentCoreStats.effectMagnitude, modEntry.value, modEntry.skillStatModType);
-                // EffectMagnitude가 변경되면, 종속된 최종 타입별 스탯들도 업데이트
-                currentProjectileSize = baseActiveData.baseProjectileSize * currentCoreStats.effectMagnitude;
-                currentAoeRadius = baseActiveData.baseAoeRadius * currentCoreStats.effectMagnitude;
-                currentMeleeArcAngle = baseActiveData.baseMeleeArcAngle * currentCoreStats.effectMagnitude;
-                break;
-
-            // CoreSkillStats 내의 int 스탯들
+            case SkillStatType.EffectMagnitude:
+            case SkillStatType.Range:
             case SkillStatType.HitCount:
-                ApplyValue(ref currentCoreStats.hitCount, modEntry.value, modEntry.skillStatModType);
-                break;
-
+                return newValue > currentValue;
+            // 낮을수록 좋은 스탯
+            case SkillStatType.Cooldown:
+            case SkillStatType.CastTime:
+            case SkillStatType.ResourceCost:
+                return newValue < currentValue;
             default:
-                Debug.LogWarning($"Unhandled SkillStatType: {modEntry.skillStatType}. This stat is not designed to be modified by generic stat modification passives.");
-                break;
-        }
-    }
-
-    /// <summary>
-    /// float 타입 스탯에 지정된 값과 수정 방식을 적용합니다.
-    /// </summary>
-    /// <param name="targetStat">수정될 대상 스탯 (참조로 전달되어 직접 수정됨).</param>
-    /// <param name="modifierValue">적용할 수정 값.</param>
-    /// <param name="modType">수정 방식 (<see cref="SkillStatModType"/>).</param> // SkillModType -> SkillStatModType 변경
-    private void ApplyValue(ref float targetStat, float modifierValue, SkillStatModType modType) // SkillModType -> SkillStatModType 변경
-    {
-        switch (modType)
-        {
-            case SkillStatModType.Additive: // SkillModType -> SkillStatModType 변경
-                targetStat += modifierValue;
-                break;
-            case SkillStatModType.Multiplicative: // SkillModType -> SkillStatModType 변경
-                // modifierValue가 0.1이면 1.1배, -0.1이면 0.9배 적용
-                targetStat *= (1f + modifierValue);
-                break;
-            case SkillStatModType.Override: // SkillModType -> SkillStatModType 변경
-                targetStat = modifierValue;
-                break;
-        }
-    }
-
-    /// <summary>
-    /// int 타입 스탯에 지정된 값과 수정 방식을 적용합니다.
-    /// </summary>
-    /// <param name="targetStat">수정될 대상 스탯 (참조로 전달되어 직접 수정됨).</param>
-    /// <param name="modifierValue">적용할 수정 값.</param>
-    /// <param name="modType">수정 방식 (<see cref="SkillStatModType"/>).</param> // SkillModType -> SkillStatModType 변경
-    private void ApplyValue(ref int targetStat, float modifierValue, SkillStatModType modType) // SkillModType -> SkillStatModType 변경
-    {
-        switch (modType)
-        {
-            case SkillStatModType.Additive: // SkillModType -> SkillStatModType 변경
-                targetStat += Mathf.RoundToInt(modifierValue); // 정수로 반올림하여 적용
-                break;
-            case SkillStatModType.Multiplicative: // SkillModType -> SkillStatModType 변경
-                // int 타입도 float과 동일한 비율로 적용 후 정수로 반올림
-                targetStat = Mathf.RoundToInt(targetStat * (1f + modifierValue));
-                break;
-            case SkillStatModType.Override: // SkillModType -> SkillStatModType 변경
-                targetStat = Mathf.RoundToInt(modifierValue);
-                break;
+                Debug.LogWarning($"IsValueBetter: Unknown or unhandled SkillStatType for comparison: {statType}");
+                return false;
         }
     }
 }

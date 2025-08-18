@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41b8887c5c995564486ceb771c26bfbd, type: 3}
+  m_Name: 104_TestCoolDownAdd2
+  m_EditorClassIdentifier: 
+  skillId: 104
+  skillName: TestCoolDownAdd_2
+  description: "\uD14C\uC2A4\uD2B8\uC6A9 \uCFE8\uB2E4\uC6B4 \uD569\uC5F0\uC0B0 \uD328\uC2DC\uBE0C\uC2A4\uD0AC_2\n\uC7AC\uC0AC\uC6A9
+    \uB300\uAE30\uC2DC\uAC04 1\uCD08 \uC99D\uAC00"
+  skillIcon: {fileID: 0}
+  statModifications:
+  - skillStatType: 1
+    skillStatModType: 0
+    value: 1

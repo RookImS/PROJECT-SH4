@@ -1,6 +1,8 @@
 using UnityEngine;
 
-/* 스킬의 기본적인 데이터 */
+/// <summary>
+/// 스킬의 기본적인 데이터
+/// </summary>
 public class SkillData : ScriptableObject
 {
     [Header("General Skill Info")]

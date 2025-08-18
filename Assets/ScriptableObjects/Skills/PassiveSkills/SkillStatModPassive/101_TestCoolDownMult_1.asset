@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 41b8887c5c995564486ceb771c26bfbd, type: 3}
-  m_Name: 101_TestCalmMind
+  m_Name: 101_TestCoolDownMult_1
   m_EditorClassIdentifier: 
   skillId: 101
-  skillName: TestCalmMind
-  description: "\uD14C\uC2A4\uD2B8\uC6A9 \uD328\uC2DC\uBE0C\uC2A4\uD0AC_1\n\uC7AC\uC0AC\uC6A9
+  skillName: TestCoolDownMult_1
+  description: "\uD14C\uC2A4\uD2B8\uC6A9 \uCFE8\uB2E4\uC6B4 \uACF1\uC5F0\uC0B0 \uD328\uC2DC\uBE0C\uC2A4\uD0AC_1\n\uC7AC\uC0AC\uC6A9
     \uB300\uAE30\uC2DC\uAC04 50% \uAC10\uC18C"
   skillIcon: {fileID: 0}
   statModifications:

@@ -28,6 +28,20 @@ public class Character : MonoBehaviour
             Debug.Log($"{this.name}이(가) 쓰러졌습니다!");
         }
     }
+
+    /// <summary>
+    /// 임시 상태 효과 적용 메서드입니다. 실제 게임에서는 <c>StatusEffectManager</c>와 같은
+    /// 전용 컴포넌트가 상태 효과의 실제 로직을 담당하게 될 것입니다.
+    /// </summary>
+    /// <param name="effectData">적용할 <c>StatusEffectData</c> 객체입니다.</param>
+    public void ApplyStatusEffect(StatusEffectData effectData)
+    {
+        Debug.Log($"캐릭터 '{characterName}'에게 상태 효과 '{effectData.effectName}' 적용 시도.");
+        // 여기서 effectData의 타입에 따라 실제 버프/디버프 로직을 시작할 수 있습니다.
+        // 예를 들어:
+        // if (effectData is PoisonStatusEffectData poisonData) { /* 독 효과 로직 */ }
+        // else if (effectData is AttackBuffStatusEffectData buffData) { /* 버프 효과 로직 */ }
+    }
 }
 
 

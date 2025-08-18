@@ -3,7 +3,7 @@ using System;
 
 
 /* 액티브 스킬 핵심 스탯 */
-[Serializable]
+[System.Serializable]
 public struct CoreSkillStats
 {
     public float baseDamage; // 기본 피해량

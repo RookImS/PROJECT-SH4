@@ -15,10 +15,10 @@ MonoBehaviour:
   skillId: 1
   skillName: TestSwing
   description: "\uD14C\uC2A4\uD2B8\uC6A9 \uC561\uD2F0\uBE0C\uC2A4\uD0AC_1\n\uAC01\uB3C4
-    30, \uADFC\uC811\uACF5\uACA9"
+    30, \uBD80\uCC44\uAF34\uD615 \uADFC\uC811\uACF5\uACA9"
   skillIcon: {fileID: 0}
   coreStats:
-    baseDamage: 50
+    baseDamage: 150
     cooldown: 10
     castTime: 2
     resourceCost: 10
@@ -39,5 +39,4 @@ MonoBehaviour:
   aoeDelay: 0
   aoeDuration: 0
   aoeHitInterval: 0
-  animationTriggerName: testSwing
   baseMeleeArcAngle: 30
