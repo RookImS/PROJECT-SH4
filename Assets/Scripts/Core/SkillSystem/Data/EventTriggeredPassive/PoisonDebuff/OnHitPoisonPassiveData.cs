@@ -3,14 +3,14 @@ using System.Collections.Generic; // List¸¦ »ç¿ëÇÏÁö ¾Ê¾Æµµ µÇÁö¸¸, ÀÏ¹İÀûÀ¸·Î Ç
 
 /// <summary>
 /// <c>OnHitPoisonPassiveData</c>´Â ½ºÅ³ ÀûÁß ½Ã Å¸°Ù¿¡°Ô µ¶ »óÅÂ È¿°ú¸¦ ºÎ¿©ÇÏ´Â ÆĞ½Ãºê ½ºÅ³ÀÇ µ¥ÀÌÅÍÀÔ´Ï´Ù.
-/// <c>PassiveSkillData</c>¸¦ »ó¼Ó¹ŞÀ¸¸ç, <c>IRuntimePassiveEffectFactory</c>¸¦ ±¸ÇöÇÕ´Ï´Ù.
+/// <c>PassiveSkillData</c>¸¦ »ó¼Ó¹ŞÀ¸¸ç, <c>IRuntimePassiveSkillFactory</c>¸¦ ±¸ÇöÇÕ´Ï´Ù.
 /// </summary>
 /// <remarks>
 /// Unity Editor¿¡¼­ 'SkillSystem/Passive Skill Data/On Hit Poison' ¸Ş´º¸¦ ÅëÇØ ¿¡¼ÂÀ» »ı¼ºÇÒ ¼ö ÀÖ½À´Ï´Ù.
 /// ÀÌ ÆĞ½Ãºê µ¥ÀÌÅÍ ¿¡¼ÂÀº <c>PoisonStatusEffectData</c>¸¦ ÂüÁ¶ÇÏ¿© ¾î¶² µ¶ È¿°ú¸¦ Àû¿ëÇÒÁö °áÁ¤ÇÕ´Ï´Ù.
 /// </remarks>
 [CreateAssetMenu(fileName = "101_PoisonDebuff", menuName = "Skill/Passive/Event-Triggered/PoisonDebuff")]
-public class OnHitPoisonPassiveData : PassiveSkillData, IRuntimePassiveEffectFactory
+public class OnHitPoisonPassiveData : PassiveSkillData, IRuntimePassiveSkillFactory
 {
     [Header("Poison Passive Specifics")]
     [Tooltip("ÀÌ ÆĞ½Ãºê°¡ ½ºÅ³ ÀûÁß ½Ã Å¸°Ù¿¡°Ô Àû¿ëÇÒ µ¶ »óÅÂ È¿°ú µ¥ÀÌÅÍÀÔ´Ï´Ù.")]
@@ -18,10 +18,10 @@ public class OnHitPoisonPassiveData : PassiveSkillData, IRuntimePassiveEffectFac
 
     /// <summary>
     /// ÀÌ ÆÑÅä¸®·ÎºÎÅÍ ½ÇÁ¦ ·±Å¸ÀÓ ÆĞ½Ãºê È¿°ú ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÕ´Ï´Ù.
-    /// <c>OnHitPoisonEffect</c> ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÏ¸ç, µ¶ È¿°ú µ¥ÀÌÅÍ¸¦ Àü´ŞÇÕ´Ï´Ù.
+    /// <c>OnHitPoisonExecutor</c> ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÏ¸ç, µ¶ È¿°ú µ¥ÀÌÅÍ¸¦ Àü´ŞÇÕ´Ï´Ù.
     /// </summary>
-    /// <returns>»ı¼ºµÈ <c>OnHitPoisonEffect</c> ÀÎ½ºÅÏ½ºÀÔ´Ï´Ù. <c>poisonEffectData</c>°¡ ÇÒ´çµÇÁö ¾ÊÀº °æ¿ì <c>null</c>À» ¹İÈ¯ÇÕ´Ï´Ù.</returns>
-    public override IRuntimePassiveEffect CreateRuntimeEffect()
+    /// <returns>»ı¼ºµÈ <c>OnHitPoisonExecutor</c> ÀÎ½ºÅÏ½ºÀÔ´Ï´Ù. <c>poisonEffectData</c>°¡ ÇÒ´çµÇÁö ¾ÊÀº °æ¿ì <c>null</c>À» ¹İÈ¯ÇÕ´Ï´Ù.</returns>
+    public override IRuntimePassiveSkill CreateRuntimeSkill()
     {
         if (poisonEffectData == null)
         {
@@ -29,6 +29,6 @@ public class OnHitPoisonPassiveData : PassiveSkillData, IRuntimePassiveEffectFac
             return null;
         }
         // ½ºÅ³ ÀûÁß ½Ã µ¶ È¿°ú¸¦ ºÎ¿©ÇÒ ½ÇÁ¦ ·±Å¸ÀÓ È¿°ú ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÕ´Ï´Ù.
-        return new OnHitPoisonEffect(poisonEffectData);
+        return new OnHitPoisonExecutor(poisonEffectData);
     }
 }

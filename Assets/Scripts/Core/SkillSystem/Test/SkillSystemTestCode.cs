@@ -29,7 +29,7 @@ public class SkillSystemTestCode : MonoBehaviour
 
         // 1. SkillInstance 생성 테스트
         Debug.Log("\n--- 1. SkillInstance Creation Test ---");
-        SkillInstance skillInstance = new SkillInstance(activeSkillToTest, passiveSkillsToApply);
+        RutimeSkill skillInstance = new RutimeSkill(activeSkillToTest, passiveSkillsToApply);
         Debug.Log($"SkillInstance '{skillInstance.activeSkillData.skillName}' created successfully.");
 
         // 2. RuntimeSkillData 초기화 및 스탯 확인
@@ -98,9 +98,9 @@ public class SkillSystemTestCode : MonoBehaviour
 
         // 런타임 패시브 효과 출력
         Debug.Log("--- Attached Runtime Passive Effects ---");
-        if (runtimeSkillData.attachedRuntimePassiveEffects != null && runtimeSkillData.attachedRuntimePassiveEffects.Any())
+        if (runtimeSkillData.attachedRuntimePassiveSkills != null && runtimeSkillData.attachedRuntimePassiveSkills.Any())
         {
-            foreach (var effect in runtimeSkillData.attachedRuntimePassiveEffects)
+            foreach (var effect in runtimeSkillData.attachedRuntimePassiveSkills)
             {
                 Debug.Log($"  {effect.GetType().Name}");
             }

@@ -5,7 +5,7 @@ using System;
 /// <summary>
 /// 액티브/패시브 조합으로 생성되는 실제 사용 가능한 스킬 인스턴스
 /// </summary>
-public class SkillInstance
+public class RutimeSkill
 {
     /// <summary>
     /// 원본 액티브 스킬 데이터 참조
@@ -16,7 +16,7 @@ public class SkillInstance
     private List<PassiveSkillData> _attachedPassiveDatas;
 
     /// <summary>
-    /// 패시브 효과가 적용된 최종 스킬 능력치
+    /// 패시브 스킬이 적용된 최종 스킬 능력치
     /// </summary>
     public RuntimeSkillData runtimeSkillData;
 
@@ -24,9 +24,7 @@ public class SkillInstance
     /// <summary>
     /// 생성자. 액티브/패시브 조합으로 인스턴스 생성한다.
     /// </summary>
-    /// <param name="activeData">원본 액티브 스킬 데이터</param>
-    /// <param name="attachedPassiveDatas">부착할 패시브 데이터 리스트</param>
-    public SkillInstance(ActiveSkillData activeData, List<PassiveSkillData> attachedPassiveDatas)
+    public RutimeSkill(ActiveSkillData activeData, List<PassiveSkillData> attachedPassiveDatas)
     {
         activeSkillData = activeData;
         _attachedPassiveDatas = attachedPassiveDatas;
@@ -37,17 +35,17 @@ public class SkillInstance
         // 2. 스탯 수정 패시브 적용
         ApplyPreExecutionModifiers(runtimeSkillData, attachedPassiveDatas);
 
-        // 3. 이벤트 기반 패시브 런타임 효과 생성 및 할당
-        runtimeSkillData.attachedRuntimePassiveEffects = new List<IRuntimePassiveEffect>();
+        // 3. 이벤트 기반 패시브 런타임 스킬 생성 및 할당
+        runtimeSkillData.attachedRuntimePassiveSkills = new List<IRuntimePassiveSkill>();
         foreach (var passiveData in attachedPassiveDatas)
         {
-            if (passiveData is IRuntimePassiveEffectFactory factory)
+            if (passiveData is IRuntimePassiveSkillFactory factory)
             {
-                IRuntimePassiveEffect runtimeEffect = factory.CreateRuntimeEffect();
-                if (runtimeEffect != null)
-                    runtimeSkillData.attachedRuntimePassiveEffects.Add(runtimeEffect);
+                IRuntimePassiveSkill runtimeSkill = factory.CreateRuntimeSkill();
+                if (runtimeSkill != null)
+                    runtimeSkillData.attachedRuntimePassiveSkills.Add(runtimeSkill);
             }
-        }
+        }       
     }
 
     /// <summary>
@@ -91,14 +89,15 @@ public class SkillInstance
         caster.StartCooldown(runtimeSkillData.currentCoreStats.cooldown);
         Debug.Log($"캐릭터 '{caster.name}'가 스킬 '{activeSkillData.skillName}' 사용 시도. 쿨다운: {runtimeSkillData.currentCoreStats.cooldown}초.");
 
-        // 모든 런타임 패시브 효과에 OnSkillCast 호출
-        foreach (var runtimeEffect in runtimeSkillData.attachedRuntimePassiveEffects)
-            runtimeEffect.OnSkillCast(caster, this);
+        // 모든 런타임 패시브 스킬에 OnSkillCast 호출
+        foreach (var runtimeSkill in runtimeSkillData.attachedRuntimePassiveSkills)
+            runtimeSkill.OnSkillCast(caster, this); // 스킬을 사용했을 떄 발동되어야하는 패시브 스킬을 처리하는건고
 
         // 실제 공격 로직(더미)
         Debug.Log($"'{activeSkillData.skillName}' 스킬 발동!");
 
-        // 공격 타입별 더미 분기
+        
+        // 공격 타입별 더미 분기 (실제 액티브 스킬이 처리해야되는 부분)
         if (activeSkillData.skillAttackType == SkillAttackType.Projectile)
         {
             Debug.Log($"투사체 발사! 속도: {runtimeSkillData.currentProjectileSpeed}, 크기: {runtimeSkillData.currentProjectileSize}, 사거리: {runtimeSkillData.currentCoreStats.range}");
@@ -114,7 +113,10 @@ public class SkillInstance
             Debug.Log($"근접 스킬 발동! 아크 각도: {runtimeSkillData.currentMeleeArcAngle}, 사거리: {runtimeSkillData.currentCoreStats.range}");
             //실제 근접 공격 로직은 별도 구현
         }
+        
     }
+
+  
 
     /// <summary>
     /// 스킬이 대상에게 적중했을 때 호출한다.
@@ -126,9 +128,9 @@ public class SkillInstance
     {
         Debug.Log($"'{activeSkillData.skillName}' 스킬이 '{target.name}'에게 적중! 예상 피해: {damageDealt}");
 
-        // 모든 런타임 패시브 효과에 OnSkillHit 호출
-        foreach (var runtimeEffect in runtimeSkillData.attachedRuntimePassiveEffects)
-            runtimeEffect.OnSkillHit(caster, target, this, damageDealt);
+        // 모든 런타임 패시브 스킬에 OnSkillHit 호출
+        foreach (var runtimeSkill in runtimeSkillData.attachedRuntimePassiveSkills)
+            runtimeSkill.OnSkillHit(caster, target, this, damageDealt);
 
         // 실제 피해 적용 로직은 별도 구현
     }

@@ -4,15 +4,15 @@ using UnityEngine;
 /// <c>OnCastAttackBuffEffect</c>는 스킬이 시전되었을 때 캐스터에게 공격력 버프를 부여하는 런타임 패시브 효과입니다.
 /// <c>IRuntimePassiveEffect</c> 인터페이스를 구현하여 <c>OnSkillCast</c> 이벤트에 반응합니다.
 /// </summary>
-public class OnCastAttackBuffEffect : IRuntimePassiveEffect
+public class OnCastAttackBuffExecutor : IRuntimePassiveSkill
 {
     private AttackBuffStatusEffectData _attackBuffData;
 
     /// <summary>
-    /// <c>OnCastAttackBuffEffect</c>의 새로운 인스턴스를 초기화합니다.
+    /// <c>OnCastAttackBuffExecutor</c>의 새로운 인스턴스를 초기화합니다.
     /// </summary>
     /// <param name="attackBuffData">이 효과가 캐스터에게 부여할 공격력 버프 상태 효과 데이터입니다.</param>
-    public OnCastAttackBuffEffect(AttackBuffStatusEffectData attackBuffData)
+    public OnCastAttackBuffExecutor(AttackBuffStatusEffectData attackBuffData)
     {
         _attackBuffData = attackBuffData;
     }
@@ -22,7 +22,7 @@ public class OnCastAttackBuffEffect : IRuntimePassiveEffect
     /// </summary>
     /// <param name="caster">스킬을 시전한 <c>Character</c>입니다.</param>
     /// <param name="skillInstance">현재 사용되고 있는 <c>SkillInstance</c>입니다.</param>
-    public void OnSkillCast(Character caster, SkillInstance skillInstance)
+    public void OnSkillCast(Character caster, RutimeSkill skillInstance)
     {
         // 캐스터가 유효하고 공격력 버프 데이터가 할당되어 있다면 버프 효과를 적용합니다.
         if (caster != null && _attackBuffData != null)
@@ -38,7 +38,7 @@ public class OnCastAttackBuffEffect : IRuntimePassiveEffect
     /// <summary>
     /// 스킬이 적에게 성공적으로 적중했을 때 발동하는 로직을 정의합니다. 공격력 버프는 시전 시 발동하므로, 여기서는 아무것도 하지 않습니다.
     /// </summary>
-    public void OnSkillHit(Character caster, Character target, SkillInstance skillInstance, float damageDealt)
+    public void OnSkillHit(Character caster, Character target, RutimeSkill skillInstance, float damageDealt)
     {
         // 공격력 버프는 시전 시 발동하므로, 적중 시에는 특별한 로직이 없습니다.
     }

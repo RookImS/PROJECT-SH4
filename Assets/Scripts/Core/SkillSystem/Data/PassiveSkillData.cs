@@ -3,9 +3,8 @@ using UnityEngine;
 /// <summary>
 /// 패시브 스킬의 기본적인 데이터
 /// </summary>
-public abstract class PassiveSkillData : SkillData, IRuntimePassiveEffectFactory
+public abstract class PassiveSkillData : SkillData, IRuntimePassiveSkillFactory
 {
-    /* 패시브 스킬 데이터*/
     [Header("Passive Specifics")]
     /* 패시브에 의해 부여되는 상태 효과 (버프 & 디버프) 데이터*/
     [Header("Status Effect (Buff & Debuff)")]
@@ -13,7 +12,7 @@ public abstract class PassiveSkillData : SkillData, IRuntimePassiveEffectFactory
     StatusEffectData statusEffectToApply;
 
     /// <inheritdoc/>
-    public virtual IRuntimePassiveEffect CreateRuntimeEffect()
+    public virtual IRuntimePassiveSkill CreateRuntimeSkill()
     {
         return null;
     }

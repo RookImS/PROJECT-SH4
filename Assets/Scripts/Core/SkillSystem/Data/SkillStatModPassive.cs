@@ -13,7 +13,7 @@ public class SkillStatModPassive : PassiveSkillData
     public List<SkillStatModEntry> statModifications = new List<SkillStatModEntry>();
 
     /// <inheritdoc/>
-    public override IRuntimePassiveEffect CreateRuntimeEffect()
+    public override IRuntimePassiveSkill CreateRuntimeSkill()
     {
         return null;
     }

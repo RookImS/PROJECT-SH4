@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// 패시브 효과가 적용된 최종 스킬 능력치를 담는 런타임 데이터 클래스
+/// 패시브 스킬이 적용된 최종 스킬 능력치를 담는 런타임 데이터 클래스
 /// </summary>
 public class RuntimeSkillData
 {
@@ -19,9 +19,9 @@ public class RuntimeSkillData
     public List<SkillStatModEntry> appliedStatModifiers;
 
     /// <summary>
-    /// 부착된 런타임 패시브 효과 목록
+    /// 부착된 런타임 패시브 스킬 목록
     /// </summary>
-    public List<IRuntimePassiveEffect> attachedRuntimePassiveEffects;
+    public List<IRuntimePassiveSkill> attachedRuntimePassiveSkills;
 
     /// <summary>
     /// 최종 계산된 스킬 핵심 스탯
@@ -57,7 +57,7 @@ public class RuntimeSkillData
 
         // 적용된 스탯 보정 목록 및 부착된 런타임 패시브 효과 목록초기화
         appliedStatModifiers = new List<SkillStatModEntry>();
-        attachedRuntimePassiveEffects = new List<IRuntimePassiveEffect>();
+        attachedRuntimePassiveSkills = new List<IRuntimePassiveSkill>();
         
         // 핵심 스탯 초기화
         currentCoreStats = activeData.coreStats;  

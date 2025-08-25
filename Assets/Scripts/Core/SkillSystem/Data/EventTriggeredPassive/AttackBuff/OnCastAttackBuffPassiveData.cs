@@ -3,14 +3,14 @@ using System.Collections.Generic; // List¸¦ »ç¿ëÇÏÁö ¾Ê¾Æµµ µÇÁö¸¸, ÀÏ¹İÀûÀ¸·Î Ç
 
 /// <summary>
 /// <c>OnCastAttackBuffPassiveData</c>´Â ½ºÅ³ ½ÃÀü ½Ã Ä³½ºÅÍ¿¡°Ô °ø°İ·Â ¹öÇÁ »óÅÂ È¿°ú¸¦ ºÎ¿©ÇÏ´Â ÆĞ½Ãºê ½ºÅ³ÀÇ µ¥ÀÌÅÍÀÔ´Ï´Ù.
-/// <c>PassiveSkillData</c>¸¦ »ó¼Ó¹ŞÀ¸¸ç, <c>IRuntimePassiveEffectFactory</c>¸¦ ±¸ÇöÇÕ´Ï´Ù.
+/// <c>PassiveSkillData</c>¸¦ »ó¼Ó¹ŞÀ¸¸ç, <c>IRuntimePassiveSkillFactory</c>¸¦ ±¸ÇöÇÕ´Ï´Ù.
 /// </summary>
 /// <remarks>
 /// Unity Editor¿¡¼­ 'SkillSystem/Passive Skill Data/On Cast Attack Buff' ¸Ş´º¸¦ ÅëÇØ ¿¡¼ÂÀ» »ı¼ºÇÒ ¼ö ÀÖ½À´Ï´Ù.
 /// ÀÌ ÆĞ½Ãºê µ¥ÀÌÅÍ ¿¡¼ÂÀº <c>AttackBuffStatusEffectData</c>¸¦ ÂüÁ¶ÇÏ¿© ¾î¶² °ø°İ·Â ¹öÇÁ È¿°ú¸¦ Àû¿ëÇÒÁö °áÁ¤ÇÕ´Ï´Ù.
 /// </remarks>
 [CreateAssetMenu(fileName = "001_AttackPowerBuff", menuName = "Skill/Passive/Event-Triggered/AttackPowerBuff")]
-public class OnCastAttackBuffPassiveData : PassiveSkillData, IRuntimePassiveEffectFactory
+public class OnCastAttackBuffPassiveData : PassiveSkillData, IRuntimePassiveSkillFactory
 {
     [Header("Attack Buff Passive Specifics")]
     [Tooltip("ÀÌ ÆĞ½Ãºê°¡ ½ºÅ³ ½ÃÀü ½Ã Ä³½ºÅÍ¿¡°Ô Àû¿ëÇÒ °ø°İ·Â ¹öÇÁ »óÅÂ È¿°ú µ¥ÀÌÅÍÀÔ´Ï´Ù.")]
@@ -18,10 +18,10 @@ public class OnCastAttackBuffPassiveData : PassiveSkillData, IRuntimePassiveEffe
 
     /// <summary>
     /// ÀÌ ÆÑÅä¸®·ÎºÎÅÍ ½ÇÁ¦ ·±Å¸ÀÓ ÆĞ½Ãºê È¿°ú ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÕ´Ï´Ù.
-    /// <c>OnCastAttackBuffEffect</c> ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÏ¸ç, °ø°İ·Â ¹öÇÁ µ¥ÀÌÅÍ¸¦ Àü´ŞÇÕ´Ï´Ù.
+    /// <c>OnCastAttackBuffExecutor</c> ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÏ¸ç, °ø°İ·Â ¹öÇÁ µ¥ÀÌÅÍ¸¦ Àü´ŞÇÕ´Ï´Ù.
     /// </summary>
-    /// <returns>»ı¼ºµÈ <c>OnCastAttackBuffEffect</c> ÀÎ½ºÅÏ½ºÀÔ´Ï´Ù. <c>attackBuffData</c>°¡ ÇÒ´çµÇÁö ¾ÊÀº °æ¿ì <c>null</c>À» ¹İÈ¯ÇÕ´Ï´Ù.</returns>
-    public override IRuntimePassiveEffect CreateRuntimeEffect()
+    /// <returns>»ı¼ºµÈ <c>OnCastAttackBuffExecutor</c> ÀÎ½ºÅÏ½ºÀÔ´Ï´Ù. <c>attackBuffData</c>°¡ ÇÒ´çµÇÁö ¾ÊÀº °æ¿ì <c>null</c>À» ¹İÈ¯ÇÕ´Ï´Ù.</returns>
+    public override IRuntimePassiveSkill CreateRuntimeSkill()
     {
         if (attackBuffData == null)
         {
@@ -29,6 +29,6 @@ public class OnCastAttackBuffPassiveData : PassiveSkillData, IRuntimePassiveEffe
             return null;
         }
         // ½ºÅ³ ½ÃÀü ½Ã °ø°İ·Â ¹öÇÁ¸¦ ºÎ¿©ÇÒ ½ÇÁ¦ ·±Å¸ÀÓ È¿°ú ÀÎ½ºÅÏ½º¸¦ »ı¼ºÇÏ¿© ¹İÈ¯ÇÕ´Ï´Ù.
-        return new OnCastAttackBuffEffect(attackBuffData);
+        return new OnCastAttackBuffExecutor(attackBuffData);
     }
 }
