@@ -120,7 +120,7 @@ namespace Sh4
         #endregion
 
         /// <summary>
-        /// <see cref="Subscribe(EntityBroadcaster{T})"/> 중에 해야할 일을 구현합니다.
+        /// <see cref="Subscribe(IObservable{T})"/> 중에 해야할 일을 구현합니다.
         /// </summary>
         protected virtual void ExecuteInSubscribe()
         {
