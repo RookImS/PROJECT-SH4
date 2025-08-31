@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
-
+using Sh4;
 
 public class ExampleManager1 : MonoBehaviour
 {
