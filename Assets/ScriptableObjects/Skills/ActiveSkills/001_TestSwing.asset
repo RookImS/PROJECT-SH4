@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36ea75e8841387b4195e1cd063bcd459, type: 3}
+  m_Name: 001_TestSwing
+  m_EditorClassIdentifier: 
+  skillId: 1
+  skillName: TestSwing
+  description: "\uD14C\uC2A4\uD2B8\uC6A9 \uC561\uD2F0\uBE0C\uC2A4\uD0AC_1\n\uAC01\uB3C4
+    30, \uBD80\uCC44\uAF34\uD615 \uADFC\uC811\uACF5\uACA9"
+  skillIcon: {fileID: 0}
+  coreStats:
+    baseDamage: 150
+    cooldown: 10
+    castTime: 2
+    resourceCost: 10
+    characterAttackPowerMultiplier: 0.8
+    flatDamageAdded: 20
+    baseCriticalChance: 0.8
+    baseCriticalDamageMultiplier: 2
+    hitCount: 2
+    effectMagnitude: 1
+    range: 4
+  skillEffectPrefab: {fileID: 0}
+  skillAttackType: 2
+  baseProjectileSize: 0
+  projectileSpeed: 0
+  canPierceTargets: 0
+  maxTargetsHit: 0
+  baseAoeRadius: 0
+  aoeDelay: 0
+  aoeDuration: 0
+  aoeHitInterval: 0
+  baseMeleeArcAngle: 30
