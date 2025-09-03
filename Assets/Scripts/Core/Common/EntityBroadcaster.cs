@@ -49,7 +49,7 @@ namespace Sh4
             Observable = Instance;
         }
 
-        public EntityBroadcaster()
+        protected EntityBroadcaster()
         {
             BroadcastHandler = OnBroadcast;
             CompletedHandler = OnCompleted;
