@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2490399079773262102}
   - component: {fileID: 4392998306644399684}
   - component: {fileID: 1286053402093570317}
+  - component: {fileID: 6889361798840180309}
   m_Layer: 0
   m_Name: Dummy
   m_TagString: Untagged
@@ -97,6 +98,28 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!95 &6889361798840180309
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1623349165271733949}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: b56166b1f01df654bbfff5be565866ec, type: 3}
+  m_Controller: {fileID: 9100000, guid: 0dd405e3ac3ae2c4aa6440dfd2444fb2, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &7317891951995926966
 GameObject:
   m_ObjectHideFlags: 0
@@ -189,7 +212,8 @@ PrefabInstance:
       propertyPath: m_ApplyRootMotion
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 9500000, guid: b56166b1f01df654bbfff5be565866ec, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

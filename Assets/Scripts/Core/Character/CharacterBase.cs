@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class CharacterBase : MonoBehaviour, IStatProvider
 {
-    public event Action OnDeath;
-
     StatSystem statSystem;
 
     public FinalStats FinalStats => statSystem.FinalStats;
@@ -12,6 +10,9 @@ public class CharacterBase : MonoBehaviour, IStatProvider
     private Animator _animator;
     private Rigidbody _rigidBody;
     private Collider _collider;
+
+    public event Action OnDeath;
+    private bool _isDead = false;
 
     private void Awake()
     {
@@ -35,7 +36,7 @@ public class CharacterBase : MonoBehaviour, IStatProvider
         };
 
         statSystem = new StatSystem(baseStatData);
-        _animator = GetComponentInChildren<Animator>();
+        _animator = GetComponent<Animator>();
         _rigidBody = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
 
@@ -44,6 +45,8 @@ public class CharacterBase : MonoBehaviour, IStatProvider
 
     public void TakeDamage(float damage)
     {
+        if (_isDead) return;
+
         if (statSystem != null)
         {
             statSystem.TakeDamage(damage);
@@ -53,13 +56,16 @@ public class CharacterBase : MonoBehaviour, IStatProvider
 
         if (statSystem.CurrentStats.Health <= 0)
         {
-            // OnDeath 이벤트를 구독한 모든 이들에게 "나 죽었다!라고송니다.
             OnDeath?.Invoke();
         }
     }
 
     private void HandleDeath()
     {
+        if (_isDead) return;
+
+        _isDead = true;
+
         _animator.SetTrigger("Death");
     }
 }
