@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -8,8 +8,8 @@ public class SkillSystemTestCode : MonoBehaviour
     [Header("Test Data Setup")]
     public ActiveSkillData activeSkillToTest;
     public List<PassiveSkillData> passiveSkillsToApply;
-    public Character casterCharacter;
-    public Character targetCharacter;
+    public CharacterBase casterCharacter;
+    public CharacterBase targetCharacter;
 
     public void Start()
     {
@@ -27,25 +27,25 @@ public class SkillSystemTestCode : MonoBehaviour
             return;
         }
 
-        // 1. SkillInstance »ı¼º Å×½ºÆ®
+        // 1. SkillInstance ìƒì„± í…ŒìŠ¤íŠ¸
         Debug.Log("\n--- 1. SkillInstance Creation Test ---");
         RuntimeSkill skillInstance = new RuntimeSkill(activeSkillToTest, passiveSkillsToApply);
         Debug.Log($"SkillInstance '{skillInstance.activeSkillData.skillName}' created successfully.");
 
-        // 2. RuntimeSkillData ÃÊ±âÈ­ ¹× ½ºÅÈ È®ÀÎ
+        // 2. RuntimeSkillData ì´ˆê¸°í™” ë° ìŠ¤íƒ¯ í™•ì¸
         Debug.Log("\n--- 2. RuntimeSkillData Init & Stat Check Test ---");
         PrintRuntimeSkillDataStatus(skillInstance.runtimeSkillData);
           
 
-        // 3. UseSkill µ¿ÀÛ Å×½ºÆ®
+        // 3. UseSkill ë™ì‘ í…ŒìŠ¤íŠ¸
         Debug.Log("\n--- 3. UseSkill Execution Test ---");
         skillInstance.UseSkill(casterCharacter, targetCharacter);
         
-        // 4. CalculateFinalDamage ¹× OnSkillHit µ¿ÀÛ Å×½ºÆ®
+        // 4. CalculateFinalDamage ë° OnSkillHit ë™ì‘ í…ŒìŠ¤íŠ¸
         Debug.Log("\n--- 4. Damage Calculation & OnSkillHit Test ---");
         float calculatedDamage = skillInstance.CalculateFinalDamage(casterCharacter, targetCharacter);
-        Debug.Log($"Calculated Final Damage to {targetCharacter.characterName}: {calculatedDamage}");
-        skillInstance.OnSkillHit(casterCharacter, targetCharacter, calculatedDamage); // OnSkillHit °­Á¦ È£Ãâ
+        Debug.Log($"Calculated Final Damage to {targetCharacter.gameObject.name}: {calculatedDamage}");
+        skillInstance.OnSkillHit(casterCharacter, targetCharacter, calculatedDamage); // OnSkillHit ê°•ì œ í˜¸ì¶œ
 
         
         Debug.Log("--- Skill System Test Finished ---");
@@ -56,13 +56,13 @@ public class SkillSystemTestCode : MonoBehaviour
     {
         if (runtimeSkillData == null)
         {
-            Debug.LogError("RuntimeSkillData°¡ nullÀÔ´Ï´Ù.");
+            Debug.LogError("RuntimeSkillDataê°€ nullì…ë‹ˆë‹¤.");
             return;
         }
 
-        Debug.Log("=== RuntimeSkillData ½ºÅÈ ¹× ÆĞ½Ãºê Àû¿ë »óÅÂ ===");
+        Debug.Log("=== RuntimeSkillData ìŠ¤íƒ¯ ë° íŒ¨ì‹œë¸Œ ì ìš© ìƒíƒœ ===");
 
-        // CoreStats Ãâ·Â
+        // CoreStats ì¶œë ¥
         Debug.Log("--- currentCoreStats ---");
         Debug.Log($"baseDamage: {runtimeSkillData.currentCoreStats.baseDamage}");
         Debug.Log($"cooldown: {runtimeSkillData.currentCoreStats.cooldown}");
@@ -76,13 +76,13 @@ public class SkillSystemTestCode : MonoBehaviour
         Debug.Log($"effectMagnitude: {runtimeSkillData.currentCoreStats.effectMagnitude}");
         Debug.Log($"range: {runtimeSkillData.currentCoreStats.range}");
 
-        // ÆÄ»ı ½ºÅÈ Ãâ·Â
+        // íŒŒìƒ ìŠ¤íƒ¯ ì¶œë ¥
         Debug.Log("--- Derived Stats ---");
         Debug.Log($"currentProjectileSize: {runtimeSkillData.currentProjectileSize}");
         Debug.Log($"currentAoeRadius: {runtimeSkillData.currentAoeRadius}");
         Debug.Log($"currentMeleeArcAngle: {runtimeSkillData.currentMeleeArcAngle}");
 
-        // Àû¿ëµÈ ½ºÅÈ º¸Á¤ Ãâ·Â
+        // ì ìš©ëœ ìŠ¤íƒ¯ ë³´ì • ì¶œë ¥
         Debug.Log("--- Applied Stat Modifiers ---");
         if (runtimeSkillData.appliedStatModifiers != null && runtimeSkillData.appliedStatModifiers.Any())
         {
@@ -93,10 +93,10 @@ public class SkillSystemTestCode : MonoBehaviour
         }
         else
         {
-            Debug.Log("  Àû¿ëµÈ ½ºÅÈ º¸Á¤ ¾øÀ½.");
+            Debug.Log("  ì ìš©ëœ ìŠ¤íƒ¯ ë³´ì • ì—†ìŒ.");
         }
 
-        // ·±Å¸ÀÓ ÆĞ½Ãºê È¿°ú Ãâ·Â
+        // ëŸ°íƒ€ì„ íŒ¨ì‹œë¸Œ íš¨ê³¼ ì¶œë ¥
         Debug.Log("--- Attached Runtime Passive Effects ---");
         if (runtimeSkillData.attachedPassiveSkillExecutors != null && runtimeSkillData.attachedPassiveSkillExecutors.Any())
         {
@@ -107,9 +107,9 @@ public class SkillSystemTestCode : MonoBehaviour
         }
         else
         {
-            Debug.Log("  ·±Å¸ÀÓ ÆĞ½Ãºê È¿°ú ¾øÀ½.");
+            Debug.Log("  ëŸ°íƒ€ì„ íŒ¨ì‹œë¸Œ íš¨ê³¼ ì—†ìŒ.");
         }
 
-        Debug.Log("=== RuntimeSkillData »óÅÂ Ãâ·Â ³¡ ===");
+        Debug.Log("=== RuntimeSkillData ìƒíƒœ ì¶œë ¥ ë ===");
     }
 }

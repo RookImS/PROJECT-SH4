@@ -18,4 +18,8 @@ MonoBehaviour:
   description: "\uD14C\uC2A4\uD2B8\uC6A9 \uACF5\uBC84\uD504_1\n\uC9C0\uC18D \uC2DC\uAC04:
     5\uCD08\n\uACF5 \uBC84\uD504 \uC99D\uAC00\uB7C9: 10"
   duration: 5
+  statModifiers:
+  - StatType: 2
+    Value: 10
+    Type: 100
   attackPowerIncrease: 10

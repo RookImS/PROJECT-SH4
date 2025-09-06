@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -83,10 +83,10 @@ public class RuntimeSkill
     /// </summary>
     /// <param name="caster">시전자</param>
     /// <param name="target">대상(옵션)</param>
-    public void UseSkill(Character caster, Character target = null)
+    public void UseSkill(CharacterBase caster, CharacterBase target = null)
     {
         // 쿨다운 적용
-        caster.StartCooldown(runtimeSkillData.currentCoreStats.cooldown);
+        caster.CooldownManager.StartCooldown(runtimeSkillData);
         Debug.Log($"캐릭터 '{caster.name}'가 스킬 '{activeSkillData.skillName}' 사용 시도. 쿨다운: {runtimeSkillData.currentCoreStats.cooldown}초.");
 
         // 모든 런타임 패시브 스킬에 OnSkillCast 호출
@@ -109,7 +109,7 @@ public class RuntimeSkill
     /// <param name="caster">시전자</param>
     /// <param name="target">대상</param>
     /// <param name="damageDealt">실제 피해량</param>
-    public void OnSkillHit(Character caster, Character target, float damageDealt)
+    public void OnSkillHit(CharacterBase caster, CharacterBase target, float damageDealt)
     {
         Debug.Log($"'{activeSkillData.skillName}' 스킬이 '{target.name}'에게 적중! 예상 피해: {damageDealt}");
 
@@ -126,16 +126,16 @@ public class RuntimeSkill
     /// <param name="caster">시전자</param>
     /// <param name="target">대상</param>
     /// <returns>최종 피해량</returns>
-    public float CalculateFinalDamage(Character caster, Character target)
+    public float CalculateFinalDamage(IStatProvider caster, IStatProvider target)
     {
         float finalDamage = 0f;
 
         // 1. 기본+계수 데미지
-        finalDamage = runtimeSkillData.currentCoreStats.baseDamage + (caster.AttackPower * runtimeSkillData.currentCoreStats.characterAttackPowerMultiplier);
+        finalDamage = runtimeSkillData.currentCoreStats.baseDamage + (caster[StatType.AttackPower] * runtimeSkillData.currentCoreStats.characterAttackPowerMultiplier);
         Debug.Log($"1단계 기본+계수 데미지: {finalDamage}");
 
         // 2. 방어력 적용
-        finalDamage *= (1.0f - target.DefenseReductionRate);
+        finalDamage *= (1.0f - target[StatType.Defense]);
         Debug.Log($"2단계 방어력 적용 후 데미지: {finalDamage}");
 
         // 3. 고정 추가 데미지
@@ -143,12 +143,12 @@ public class RuntimeSkill
         Debug.Log($"3단계 고정 추가 데미지 합산 후: {finalDamage}");
 
         // 4. 캐릭터 추가 피해 계수
-        finalDamage *= (1 + caster.BonusDamageMultiplier);
+        finalDamage *= (1 + caster[StatType.AdditionalDamageMultiplier]);
         Debug.Log($"4단계 캐릭터 추가 피해 계수 적용 후: {finalDamage}");
 
         // 5~6. 치명타 확률/배율 적용
-        float combinedCritChance = runtimeSkillData.currentCoreStats.baseCriticalChance + caster.CriticalChance;
-        float combinedCritDamageMultiplier = runtimeSkillData.currentCoreStats.baseCriticalDamageMultiplier + (caster.CriticalDamageMultiplier - 1.0f);
+        float combinedCritChance = runtimeSkillData.currentCoreStats.baseCriticalChance + caster[StatType.CriticalHitChance];
+        float combinedCritDamageMultiplier = runtimeSkillData.currentCoreStats.baseCriticalDamageMultiplier + (caster[StatType.CriticalDamageMultiplier] - 1.0f);
         bool isCriticalHit = UnityEngine.Random.value < combinedCritChance;
         Debug.Log($"최종 치명타 확률: {combinedCritChance * 100}%, 치명타 발생: {isCriticalHit}");
 

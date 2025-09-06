@@ -1,10 +1,11 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
     #region Variables
+    // 애니메이션 파라미터
     private const string ANI_SPEED = "Speed";
     private const string ANI_ATTACK = "Attack";
     private const string ANI_STATE_PLAYER_ATTACK = "Player_Attack";
@@ -16,7 +17,7 @@ public class PlayerController : MonoBehaviour
     private float _attackRange;    // 공격 범위
     private float _attackDamage;   // 공격 데미지
 
-    // CharacterBase에서 StatSystem을 가져와 이동 속도에 적용
+    private CharacterBase _characterBase;
     private IStatProvider _statProvider;
     private Animator _animator; // 애니메이션 컨트롤러
     private Rigidbody _rigidBody;
@@ -27,7 +28,12 @@ public class PlayerController : MonoBehaviour
     #region Unity Methods
     void Awake()
     {
-        _statProvider = GetComponent<IStatProvider>();
+        _characterBase = GetComponent<CharacterBase>();
+        if (_characterBase != null)
+            _statProvider = _characterBase; // CharacterBase는 IStatProvider 구현
+        else
+            _statProvider = GetComponent<IStatProvider>(); // 폴백
+
         _animator = GetComponent<Animator>();
         _rigidBody = GetComponent<Rigidbody>();
         _inputActions = new InputSystem_Actions();
@@ -36,10 +42,10 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         // 초기화
-        _movementSpeed = _statProvider != null ? _statProvider.FinalStats.movementSpeed : 5f; // 기본 이동 속도
-        _rotationSpeed = _statProvider != null ? _statProvider.FinalStats.rotationSpeed : 10f; // 기본 회전 속도
-        _attackDamage = _statProvider != null ? _statProvider.FinalStats.attackPower : 10f;
-        _attackRange = _statProvider != null ? _statProvider.FinalStats.attackRange : 1.5f;
+        _movementSpeed = _statProvider != null ? _statProvider[StatType.MovementSpeed] : 5f; // 기본 이동 속도
+        _rotationSpeed = _statProvider != null ? _statProvider[StatType.RotationSpeed] : 10f; // 기본 회전 속도
+        _attackDamage = _statProvider != null ? _statProvider[StatType.AttackPower] : 10f;
+        _attackRange = _statProvider != null ? _statProvider[StatType.AttackRange] : 1.5f;
 
         // 입력 액션에 콜백 함수 연결
         _inputActions.Player.Move.performed += OnMovePerformed;
@@ -50,8 +56,8 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         float animatorSpeed = 0f;
-        if (_statProvider != null)
-            animatorSpeed = _statProvider.FinalStats.movementSpeed * _moveInput.magnitude;
+        if (_characterBase != null)
+            animatorSpeed = _moveInput.magnitude;
         _animator.SetFloat(ANI_SPEED, animatorSpeed);
     }
 
@@ -93,8 +99,18 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Core Logic
-    // 애니메이션 이벤트에서 호출할 함수
+    /// <summary>
+    /// 공격 애니메이션 이벤트에서 호출할 함수
+    /// </summary>
     public void PerformHitCheck()
+    {
+        _characterBase.TryUseSkill(0);
+    }
+
+    /// <summary>
+    /// 콜라이더 사용한 정면 공격 처리
+    /// </summary>
+    private void ColliderAttack()
     {
         Vector3 attackPoint = transform.position + transform.forward;
 
