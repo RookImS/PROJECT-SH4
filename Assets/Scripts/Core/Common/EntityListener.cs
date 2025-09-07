@@ -65,12 +65,16 @@ namespace Sh4
             var listener = new EntityListener<T>();
 
             foreach (var action in nextActions)
+            {
                 listener.NextAction += action;
+            }
 
             if (completedActions is not null)
             {
                 foreach (var action in completedActions)
+                {
                     listener.CompletedAction += action;
+                }
             }
 
             return listener;
@@ -87,7 +91,9 @@ namespace Sh4
             _cancellation = broadcaster.Subscribe(this);
 
             if (_cancellation is null)
+            {
                 throw new InvalidOperationException($"[{GetType().Name}]이미 구독 중인 EntityBroadcaster 객체입니다.");
+            }
 
             ExecuteInSubscribe();
         }
@@ -108,14 +114,18 @@ namespace Sh4
         {
             NextAction = null;
             foreach (var action in nextActions)
+            {
                 NextAction += action;
+            }
         }
 
         public void RenewCompletedAction(List<Action> completedActions)
         {
             CompletedAction = null;
             foreach (var action in completedActions)
+            {
                 CompletedAction += action;
+            }
         }
         #endregion
 

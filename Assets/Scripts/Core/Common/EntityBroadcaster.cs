@@ -49,7 +49,7 @@ namespace Sh4
             Observable = Instance;
         }
 
-        public EntityBroadcaster()
+        protected EntityBroadcaster()
         {
             BroadcastHandler = OnBroadcast;
             CompletedHandler = OnCompleted;
@@ -78,7 +78,9 @@ namespace Sh4
         public IDisposable? Subscribe(IObserver<T> listener)
         {
             if (_listeners.Add(listener))
+            {
                 return new Unsubscriber(_listeners, listener);
+            }
 
             return null;
         }
