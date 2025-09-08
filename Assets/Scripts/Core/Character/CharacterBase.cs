@@ -1,46 +1,51 @@
-using System;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class CharacterBase : MonoBehaviour, IStatProvider
+[RequireComponent(typeof(StatusEffectManager))]
+public class CharacterBase : MonoBehaviour, IStatProvider, ISkillUser
 {
-    StatSystem statSystem;
+    [SerializeField] private StatData _baseStatData; // 기본 스탯 데이터
 
-    public FinalStats FinalStats => statSystem.FinalStats;
+    private StatSystem statSystem;
+    public float this[StatType type] => TryGetStat(type, out var value) ? value : 0f;
+    public float CurrentHealth => statSystem?.CurrentStats.CurrentHealth ?? 0f;
+    public float CurrentStamina => statSystem?.CurrentStats.CurrentStamina ?? 0f;
+
+    public StatusEffectManager StatusEffectManager { get; private set; }
+    public CooldownManager CooldownManager { get; private set; }
+    public SkillCaster SkillCaster { get; private set; }
+
+    public bool IsSkillAvailable => !_isDead;
+    public Transform Transform => this.transform;
 
     private Animator _animator;
     private Rigidbody _rigidBody;
     private Collider _collider;
 
-    public event Action OnDeath;
     private bool _isDead = false;
 
     private void Awake()
     {
-        // StatData는 외부에서 주입받거나, 스크립트에서 직접 설정할 수 있습니다.
-        StatData baseStatData = new StatData
-        {
-            maxHealth = 100f,
-            maxStamina = 50f,
-            attackPower = 10f,
-            attackRange = 1.5f,
-            additionalDamageMultiplier = 0.2f,
-            fixedAdditionalDamage = 5f,
-            defense = 5f,
-            movementSpeed = 3f,
-            rotationSpeed = 10f,
-            attackSpeedMultiplier = 1.0f,
-            criticalHitChance = 0.1f,
-            criticalDamageMultiplier = 1.5f,
-            cooldownReduction = 0.1f,
-            statusResistance = 0.05f
-        };
+        statSystem = new StatSystem(_baseStatData);
 
-        statSystem = new StatSystem(baseStatData);
+        StatusEffectManager = GetComponent<StatusEffectManager>();
+        CooldownManager = GetComponent<CooldownManager>();
+        SkillCaster = GetComponent<SkillCaster>();
+
         _animator = GetComponent<Animator>();
         _rigidBody = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
 
-        this.OnDeath += HandleDeath;
+        this.statSystem.OnDeath += HandleDeath;
+    }
+
+    private void OnDestroy()
+    {
+        if (statSystem != null)
+            statSystem.OnDeath -= HandleDeath;
     }
 
     public void TakeDamage(float damage)
@@ -51,12 +56,7 @@ public class CharacterBase : MonoBehaviour, IStatProvider
         {
             statSystem.TakeDamage(damage);
             Debug.Log($"{gameObject.name} 가 {damage} 만큼의 데미지를 입었습니다!");
-            Debug.Log($"현재 체력 : {statSystem.CurrentStats.Health}");
-        }
-
-        if (statSystem.CurrentStats.Health <= 0)
-        {
-            OnDeath?.Invoke();
+            Debug.Log($"{gameObject.name} 의 현재 체력 : {statSystem.CurrentStats.CurrentHealth}");
         }
     }
 
@@ -66,6 +66,44 @@ public class CharacterBase : MonoBehaviour, IStatProvider
 
         _isDead = true;
 
-        _animator.SetTrigger("Death");
+        _animator.SetTrigger("Death"); // 사망 애니메이션 트리거
+        _rigidBody.isKinematic = true; // 물리 효과 비활성화
     }
+
+    #region Stat Methods(IStatProvider 구현)
+    public bool TryGetStat(StatType type, out float value)
+    {
+        return statSystem.FinalStats.TryGetValue(type, out value);
+    }
+
+    public void AddModifier(StatModifier modifier)
+    {
+        statSystem?.AddModifier(modifier);
+    }
+
+    public void RemoveModifier(StatModifier modifier)
+    {
+        statSystem?.RemoveModifier(modifier);
+    }
+
+    public void AddModifiers(IEnumerable<StatModifier> modifiers)
+    {
+        statSystem?.AddModifiers(modifiers);
+    }
+
+    public void RemoveModifiers(IEnumerable<StatModifier> modifiers)
+    {
+        statSystem?.RemoveModifiers(modifiers);
+    }
+
+    public bool HasResource(StatType statType, float amount)
+    {
+        return statSystem.HasResource(statType, amount);
+    }
+
+    public void ConsumeResource(StatType statType, float amount)
+    {
+         statSystem.ConsumeResource(statType, amount);
+    }
+    #endregion
 }

@@ -1,3 +1,5 @@
+﻿using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class StatusEffectData : ScriptableObject
@@ -14,4 +16,6 @@ public abstract class StatusEffectData : ScriptableObject
     public string description;
     [Tooltip("상태 효과의 지속 시간 (초). -1이면 영구적")]
     public float duration;
+    [Tooltip("변경될 스탯 목록")]
+    public List<StatModifier> statModifiers;
 }

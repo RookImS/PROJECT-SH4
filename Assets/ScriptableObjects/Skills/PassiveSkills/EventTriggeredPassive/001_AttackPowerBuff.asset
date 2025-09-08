@@ -16,4 +16,4 @@ MonoBehaviour:
   skillName: 
   description: 
   skillIcon: {fileID: 0}
-  attackBuffData: {fileID: 0}
+  attackBuffData: {fileID: 11400000, guid: b6944e5c88567bf489f77e6f2401b50a, type: 2}
