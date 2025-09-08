@@ -854,6 +854,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4591143871693357804}
   - component: {fileID: 5697122039265781531}
+  - component: {fileID: 4441668185568045847}
   - component: {fileID: 7450292060377700037}
   - component: {fileID: 1988333960845643164}
   - component: {fileID: 865444566815658118}
@@ -895,12 +896,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 443e35daf6a935f46ad9ee5d93356752, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activeSkillToTest: {fileID: 0}
-  passiveSkillsToApply: []
-  targetCharacter: {fileID: 0}
   _baseStatData: {fileID: 11400000, guid: 51fa34dd4c7401d45b5da6ddbd89b8de, type: 2}
-  StatusEffectManager: {fileID: 0}
-  CooldownManager: {fileID: 0}
+--- !u!114 &4441668185568045847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8903209616068455221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319c5b0d7884f6f48bdc4ab37cc11a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activeSkillToTest: {fileID: 11400000, guid: f73cbdcab854b004aa7ac37b99166520, type: 2}
+  passiveSkillsToApply:
+  - {fileID: 11400000, guid: 5c73993a56a3ba643b1ca1006b7eb188, type: 2}
+  targetCharacter: {fileID: 0}
 --- !u!114 &7450292060377700037
 MonoBehaviour:
   m_ObjectHideFlags: 0

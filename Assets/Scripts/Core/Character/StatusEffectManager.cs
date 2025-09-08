@@ -5,7 +5,7 @@ using UnityEngine;
 public class StatusEffectManager : MonoBehaviour
 {
     /// <summary>
-    /// 현재 캐릭터에게 적용된 상태 효과의 정보를 관리합니다. 
+    /// 현재 적용된 상태 효과의 정보. 
     /// </summary>
     private class ActiveEffect
     {
@@ -42,7 +42,7 @@ public class StatusEffectManager : MonoBehaviour
 
         if (_activeEffects.TryGetValue(effectData.effectId, out var existingEffect))
         {
-            Debug.Log($"상태 효과 '{effectData.effectName}'가 이미 적용되어 있습니다. 지속 시간을 갱신합니다.");
+            Debug.Log($"상태 효과 '{effectData.effectName}'가 이미 적용되어 있습니다. 지속 시간({effectData.duration}초)을 갱신합니다. ");
             existingEffect.remaining = effectData.duration;
             if (existingEffect.runner != null)
             {
@@ -71,8 +71,6 @@ public class StatusEffectManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator RunEffect(ActiveEffect effect)
     {
-        Debug.Log($"상태 효과 '{effect.data.effectName}'가 적용되었습니다.");
-
         // 효과 시작 시점에 필요한 로직 추가 (예: 버프 적용)
         if (_statProvider == null)
         {
@@ -80,10 +78,9 @@ public class StatusEffectManager : MonoBehaviour
             yield break;
         }
 
-        foreach (var mod in effect.appliedModifiers)
-        {
-            _statProvider.AddModifier(mod);
-        }
+        _statProvider.AddModifiers(effect.appliedModifiers);
+        
+        Debug.Log($"상태 효과 '{effect.data.effectName}'가 적용되었습니다. 지속 시간: {effect.data.duration}초");
 
         while (effect.remaining > 0f)
         {
@@ -116,8 +113,7 @@ public class StatusEffectManager : MonoBehaviour
             return;
         }
 
-        foreach (var mod in effect.appliedModifiers)
-            _statProvider.RemoveModifier(mod);
+        _statProvider.RemoveModifiers(effect.appliedModifiers);
 
         Debug.Log($"상태 효과 '{effect.data.effectName}'가 종료되었습니다.");
         _activeEffects.Remove(effect.data.effectId);

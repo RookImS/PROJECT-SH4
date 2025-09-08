@@ -104,7 +104,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void PerformHitCheck()
     {
-        _characterBase.TryUseSkill(0);
+        _characterBase.SkillCaster.TryUseSkill(0);
     }
 
     /// <summary>

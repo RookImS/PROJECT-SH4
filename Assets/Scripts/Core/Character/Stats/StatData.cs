@@ -8,6 +8,10 @@ public class StatData : ScriptableObject
     [Header("Resources")]
     public float maxHealth;
     public float maxStamina;
+    public float currentHealth;
+    public float currentStamina;
+    public float healthRegen;
+    public float staminaRegen;
 
     [Header("Offensive")]
     public float attackPower;
@@ -37,6 +41,8 @@ public class StatData : ScriptableObject
         {
             { StatType.MaxHealth, maxHealth },
             { StatType.MaxStamina, maxStamina },
+            { StatType.CurrentHealth, currentHealth },
+            { StatType.CurrentStamina, currentStamina },
             { StatType.AttackPower, attackPower },
             { StatType.AttackRange, attackRange },
             { StatType.AdditionalDamageMultiplier, additionalDamageMultiplier },

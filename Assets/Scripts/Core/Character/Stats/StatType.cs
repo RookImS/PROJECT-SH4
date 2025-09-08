@@ -6,6 +6,10 @@ public enum StatType
     // 리소스 (Resources)
     MaxHealth,
     MaxStamina,
+    CurrentHealth,
+    CurrentStamina,
+    HealthRegen,
+    StaminaRegen,
 
     // 공격 능력 (Offensive)
     AttackPower,

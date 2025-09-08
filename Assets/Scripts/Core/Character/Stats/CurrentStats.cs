@@ -24,7 +24,7 @@ public class CurrentStats
             _currentHealth = clamped;
 
             float delta = clamped - prev;
-            OnStatChanged?.Invoke(StatType.MaxHealth, clamped, delta);
+            OnStatChanged?.Invoke(StatType.CurrentStamina, clamped, delta);
             OnHealthChanged?.Invoke(clamped);
 
             if (prev > 0f && clamped <= 0f)
@@ -45,7 +45,7 @@ public class CurrentStats
             _currentStamina = clamped;
 
             float delta = clamped - prev;
-            OnStatChanged?.Invoke(StatType.MaxStamina, clamped, delta);
+            OnStatChanged?.Invoke(StatType.CurrentStamina, clamped, delta);
             OnStaminaChanged?.Invoke(clamped);
         }
     }
@@ -84,7 +84,7 @@ public class CurrentStats
     #endregion
 
     #region StaminaLogic
-    public void SpendStamina(float amount)
+    public void ConsumeStamina(float amount)
     {
         if (amount <= 0f) return;
         CurrentStamina = CurrentStamina - amount; // uses property setter

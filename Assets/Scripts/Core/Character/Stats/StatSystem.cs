@@ -15,8 +15,8 @@ public class StatSystem
 
     // CurrentStats 이벤트를 구독하고 릴레이하는 방식으로 이벤트 전달
     public event Action<float> OnHealthChanged;
-    public event Action OnDeath;
     public event Action<float> OnStaminaChanged;
+    public event Action OnDeath;
 
     public StatSystem(StatData baseStatData)
     {
@@ -93,8 +93,44 @@ public class StatSystem
         RecalculateFinalStats();
     }
 
+    public void AddModifiers(IEnumerable<StatModifier> modifiers)
+    {
+        _modifiers.AddRange(modifiers);
+        RecalculateFinalStats();
+    }
+
+    public void RemoveModifiers(IEnumerable<StatModifier> modifiers)
+    {
+        foreach (var mod in modifiers)
+            _modifiers.Remove(mod);
+        RecalculateFinalStats();
+    }
+
     public void TakeDamage(float damage)
     {
         CurrentStats.TakeDamage(damage);
+    }
+
+    public bool HasResource(StatType statType, float amount)
+    {
+        switch (statType)
+        {
+            case StatType.CurrentStamina:
+                return CurrentStats.CurrentStamina >= amount;
+            default:
+                throw new NotImplementedException($"StatType '{statType}'에 대한 자원 확인이 구현되지 않았습니다.");
+        }   
+    }
+
+    public void ConsumeResource(StatType statType, float amount)
+    {
+        switch (statType)
+        {
+            case StatType.CurrentStamina:
+                CurrentStats.ConsumeStamina(amount);
+                break;
+            default:
+                throw new NotImplementedException($"StatType '{statType}'에 대한 자원 소모가 구현되지 않았습니다.");
+        }
     }
 }

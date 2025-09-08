@@ -10,7 +10,7 @@ public class MeleeSkillExecutor : IActiveSkillExecutor
     /// </summary>
     /// <param name="caster">스킬을 시전한 <c>Character</c></param>
     /// <param name="skillInstance">현재 사용되고 있는 <c>RuntimeSkill</c> 인스턴스</param>
-    public void OnSkillCast(CharacterBase caster, RuntimeSkill skillInstance)
+    public void OnSkillCast(ISkillUser caster, RuntimeSkill skillInstance)
     {
         var data = skillInstance.runtimeSkillData;
         Debug.Log($"근접 스킬 발동! 아크 각도: {data.currentMeleeArcAngle}, 사거리: {data.currentCoreStats.range}");

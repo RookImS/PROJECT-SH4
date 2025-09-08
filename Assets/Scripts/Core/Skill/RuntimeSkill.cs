@@ -83,12 +83,8 @@ public class RuntimeSkill
     /// </summary>
     /// <param name="caster">시전자</param>
     /// <param name="target">대상(옵션)</param>
-    public void UseSkill(CharacterBase caster, CharacterBase target = null)
+    public void UseSkill(ISkillUser caster, CharacterBase target = null)
     {
-        // 쿨다운 적용
-        caster.CooldownManager.StartCooldown(runtimeSkillData);
-        Debug.Log($"캐릭터 '{caster.name}'가 스킬 '{activeSkillData.skillName}' 사용 시도. 쿨다운: {runtimeSkillData.currentCoreStats.cooldown}초.");
-
         // 모든 런타임 패시브 스킬에 OnSkillCast 호출
         foreach (var runtimeSkill in runtimeSkillData.attachedPassiveSkillExecutors)
             runtimeSkill.OnSkillCast(caster, this); // 스킬을 사용했을 떄 발동되어야하는 패시브 스킬을 처리하는건고
@@ -98,10 +94,7 @@ public class RuntimeSkill
 
         var executor = activeSkillData.CreateActiveSkillExecutor();
         executor.OnSkillCast(caster, this);
-        
     }
-
-  
 
     /// <summary>
     /// 스킬이 대상에게 적중했을 때 호출한다.
@@ -109,7 +102,7 @@ public class RuntimeSkill
     /// <param name="caster">시전자</param>
     /// <param name="target">대상</param>
     /// <param name="damageDealt">실제 피해량</param>
-    public void OnSkillHit(CharacterBase caster, CharacterBase target, float damageDealt)
+    public void OnSkillHit(ISkillUser caster, CharacterBase target, float damageDealt)
     {
         Debug.Log($"'{activeSkillData.skillName}' 스킬이 '{target.name}'에게 적중! 예상 피해: {damageDealt}");
 
@@ -118,6 +111,7 @@ public class RuntimeSkill
             runtimeSkill.OnSkillHit(caster, target, this, damageDealt);
 
         // 실제 피해 적용 로직은 별도 구현
+        target.TakeDamage(damageDealt);
     }
 
     /// <summary>

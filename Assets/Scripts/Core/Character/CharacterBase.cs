@@ -4,22 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class CharacterBase : MonoBehaviour, IStatProvider
+[RequireComponent(typeof(StatusEffectManager))]
+public class CharacterBase : MonoBehaviour, IStatProvider, ISkillUser
 {
-    [Header("SkillTest Data Setup")]
-    public ActiveSkillData activeSkillToTest;
-    public List<PassiveSkillData> passiveSkillsToApply;
-    public CharacterBase targetCharacter;
-
     [SerializeField] private StatData _baseStatData; // 기본 스탯 데이터
 
     private StatSystem statSystem;
     public float this[StatType type] => TryGetStat(type, out var value) ? value : 0f;
+    public float CurrentHealth => statSystem?.CurrentStats.CurrentHealth ?? 0f;
+    public float CurrentStamina => statSystem?.CurrentStats.CurrentStamina ?? 0f;
 
-    public StatusEffectManager StatusEffectManager;
-    public CooldownManager CooldownManager;
+    public StatusEffectManager StatusEffectManager { get; private set; }
+    public CooldownManager CooldownManager { get; private set; }
+    public SkillCaster SkillCaster { get; private set; }
 
-    public List<RuntimeSkill> EquippedSkills { get; private set; }
+    public bool IsSkillAvailable => !_isDead;
+    public Transform Transform => this.transform;
 
     private Animator _animator;
     private Rigidbody _rigidBody;
@@ -33,18 +33,13 @@ public class CharacterBase : MonoBehaviour, IStatProvider
 
         StatusEffectManager = GetComponent<StatusEffectManager>();
         CooldownManager = GetComponent<CooldownManager>();
-
-        EquippedSkills = new List<RuntimeSkill>();
+        SkillCaster = GetComponent<SkillCaster>();
 
         _animator = GetComponent<Animator>();
         _rigidBody = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
 
         this.statSystem.OnDeath += HandleDeath;
-
-        // Test Methods
-        if (activeSkillToTest != null)
-            CreateSkillInstance();
     }
 
     private void OnDestroy()
@@ -61,7 +56,7 @@ public class CharacterBase : MonoBehaviour, IStatProvider
         {
             statSystem.TakeDamage(damage);
             Debug.Log($"{gameObject.name} 가 {damage} 만큼의 데미지를 입었습니다!");
-            Debug.Log($"현재 체력 : {statSystem.CurrentStats.CurrentHealth}");
+            Debug.Log($"{gameObject.name} 의 현재 체력 : {statSystem.CurrentStats.CurrentHealth}");
         }
     }
 
@@ -93,111 +88,22 @@ public class CharacterBase : MonoBehaviour, IStatProvider
 
     public void AddModifiers(IEnumerable<StatModifier> modifiers)
     {
-        foreach (StatModifier modifier in modifiers)
-            statSystem?.AddModifier(modifier);
+        statSystem?.AddModifiers(modifiers);
     }
 
     public void RemoveModifiers(IEnumerable<StatModifier> modifiers)
     {
-        foreach (StatModifier modifier in modifiers)
-            statSystem?.RemoveModifier(modifier);
-    }
-    #endregion
-
-    public bool TryUseSkill(int skillIndex, CharacterBase target = null)
-    {
-        if (skillIndex < 0 || skillIndex >= EquippedSkills.Count)
-        {
-            Debug.LogWarning("잘못된 스킬 인덱스입니다.");
-            return false;
-        }
-        var skill = EquippedSkills[skillIndex];
-        if (CooldownManager.IsOnCooldown(skill.runtimeSkillData))
-        {
-            Debug.Log($"스킬 '{skill.activeSkillData.skillName}'은(는) 아직 쿨다운 중입니다.");
-            return false;
-        }
-        skill.UseSkill(this, target);
-        return true;
+        statSystem?.RemoveModifiers(modifiers);
     }
 
-    #region Test Methods
-    /// <summary>
-    /// debug 용으로 스킬 장착, 추후 InventoryManager 등에서 관리
-    /// </summary>
-    private void CreateSkillInstance()
+    public bool HasResource(StatType statType, float amount)
     {
-        // 1. SkillInstance 생성 테스트
-        Debug.Log("\n--- 1. SkillInstance Creation Test ---");
-        RuntimeSkill skillInstance = new RuntimeSkill(activeSkillToTest, passiveSkillsToApply);
-        Debug.Log($"SkillInstance '{skillInstance.activeSkillData.skillName}' created successfully.");
-
-        EquippedSkills.Add(skillInstance);
-
-        // 2. RuntimeSkillData 초기화 및 스탯 확인
-        Debug.Log("\n--- 2. RuntimeSkillData Init & Stat Check Test ---");
-        PrintRuntimeSkillDataStatus(skillInstance.runtimeSkillData);
+        return statSystem.HasResource(statType, amount);
     }
 
-    private void PrintRuntimeSkillDataStatus(RuntimeSkillData runtimeSkillData)
+    public void ConsumeResource(StatType statType, float amount)
     {
-        if (runtimeSkillData == null)
-        {
-            Debug.LogError("RuntimeSkillData가 null입니다.");
-            return;
-        }
-
-        Debug.Log("=== RuntimeSkillData 스탯 및 패시브 적용 상태 ===");
-
-        // CoreStats 출력
-        Debug.Log("--- currentCoreStats ---");
-        Debug.Log($"baseDamage: {runtimeSkillData.currentCoreStats.baseDamage}");
-        Debug.Log($"cooldown: {runtimeSkillData.currentCoreStats.cooldown}");
-        Debug.Log($"castTime: {runtimeSkillData.currentCoreStats.castTime}");
-        Debug.Log($"resourceCost: {runtimeSkillData.currentCoreStats.resourceCost}");
-        Debug.Log($"characterAttackPowerMultiplier: {runtimeSkillData.currentCoreStats.characterAttackPowerMultiplier}");
-        Debug.Log($"flatDamageAdded: {runtimeSkillData.currentCoreStats.flatDamageAdded}");
-        Debug.Log($"baseCriticalChance: {runtimeSkillData.currentCoreStats.baseCriticalChance}");
-        Debug.Log($"baseCriticalDamageMultiplier: {runtimeSkillData.currentCoreStats.baseCriticalDamageMultiplier}");
-        Debug.Log($"hitCount: {runtimeSkillData.currentCoreStats.hitCount}");
-        Debug.Log($"effectMagnitude: {runtimeSkillData.currentCoreStats.effectMagnitude}");
-        Debug.Log($"range: {runtimeSkillData.currentCoreStats.range}");
-
-        // 파생 스탯 출력
-        Debug.Log("--- Derived Stats ---");
-        Debug.Log($"currentProjectileSize: {runtimeSkillData.currentProjectileSize}");
-        Debug.Log($"currentAoeRadius: {runtimeSkillData.currentAoeRadius}");
-        Debug.Log($"currentMeleeArcAngle: {runtimeSkillData.currentMeleeArcAngle}");
-
-        // 적용된 스탯 보정 출력
-        Debug.Log("--- Applied Stat Modifiers ---");
-        if (runtimeSkillData.appliedStatModifiers != null && runtimeSkillData.appliedStatModifiers.Any())
-        {
-            foreach (var mod in runtimeSkillData.appliedStatModifiers)
-            {
-                Debug.Log($"  {mod.skillStatType} | {mod.skillStatModType} | {mod.value}");
-            }
-        }
-        else
-        {
-            Debug.Log("  적용된 스탯 보정 없음.");
-        }
-
-        // 런타임 패시브 효과 출력
-        Debug.Log("--- Attached Runtime Passive Effects ---");
-        if (runtimeSkillData.attachedPassiveSkillExecutors != null && runtimeSkillData.attachedPassiveSkillExecutors.Any())
-        {
-            foreach (var effect in runtimeSkillData.attachedPassiveSkillExecutors)
-            {
-                Debug.Log($"  {effect.GetType().Name}");
-            }
-        }
-        else
-        {
-            Debug.Log("  런타임 패시브 효과 없음.");
-        }
-
-        Debug.Log("=== RuntimeSkillData 상태 출력 끝 ===");
+         statSystem.ConsumeResource(statType, amount);
     }
     #endregion
 }

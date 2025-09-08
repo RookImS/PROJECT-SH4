@@ -1,36 +1,38 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CooldownManager : MonoBehaviour
 {
-    private readonly Dictionary<int, float> _cooldowns = new Dictionary<int, float>();
+    private readonly Dictionary<int, float> _cooldowns = new();
+
+    public event Action<int, float> OnCooldownStarted;
+    public event Action<int> OnCooldownEnded;
 
     /// <summary>
     /// 스킬의 쿨타임을 시작합니다.
     /// </summary>
-    /// <param name="runtimeSkillData"></param>
-    public void StartCooldown(RuntimeSkillData runtimeSkillData)
+    /// <param name="skillId"></param>
+    /// <param name="duration"></param>
+    /// <returns>쿨타임이 시작되었는지 여부</returns>
+    public bool StartCooldown(int skillId, float duration)
     {
-        int skillId = runtimeSkillData.baseActiveData.skillId;
-        float duration = runtimeSkillData.currentCoreStats.cooldown;
         float endTime = Time.time + duration;
 
-        if (_cooldowns.ContainsKey(skillId))
-        {
-            Debug.LogWarning($"{runtimeSkillData.baseActiveData.skillName}가 쿨타임 상태입니다.");
-            return;
-        }
+        if (IsOnCooldown(skillId)) return false;
 
-        _cooldowns[skillId] = endTime;
-        StartCoroutine(CooldownCoroutine(runtimeSkillData));
+        _cooldowns.Add(skillId, endTime);
+        OnCooldownStarted?.Invoke(skillId, duration);
+        StartCoroutine(CooldownCoroutine(skillId, duration));
+        return true;
     }
 
-    private IEnumerator CooldownCoroutine(RuntimeSkillData runtimeSkillData)
+    private IEnumerator CooldownCoroutine(int skillId, float duration)
     {
-        yield return new WaitForSeconds(runtimeSkillData.currentCoreStats.cooldown);
-        _cooldowns.Remove(runtimeSkillData.baseActiveData.skillId);
-        Debug.Log($"{runtimeSkillData.baseActiveData.skillName}의 쿨타임 종료.");
+        yield return new WaitForSeconds(duration);
+        _cooldowns.Remove(skillId);
+        OnCooldownEnded?.Invoke(skillId);
     }
 
     /// <summary>
@@ -38,12 +40,6 @@ public class CooldownManager : MonoBehaviour
     /// </summary>
     /// <param name="skillId"></param>
     /// <returns></returns>
-    public bool IsOnCooldown(RuntimeSkillData runtimeSkillData)
-    {
-        int skillId = runtimeSkillData.baseActiveData.skillId;
-        return _cooldowns.ContainsKey(skillId) && _cooldowns[skillId] > Time.time;
-    }
-
     public bool IsOnCooldown(int skillId)
     {
         return _cooldowns.ContainsKey(skillId) && _cooldowns[skillId] > Time.time;
@@ -58,5 +54,11 @@ public class CooldownManager : MonoBehaviour
     {
         if (!_cooldowns.ContainsKey(skillId)) return 0f;
         return Mathf.Max(0, _cooldowns[skillId] - Time.time);
+    }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
+        _cooldowns.Clear();
     }
 }

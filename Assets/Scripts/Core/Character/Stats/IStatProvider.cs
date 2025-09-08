@@ -16,4 +16,7 @@ public interface IStatProvider
     // 여러 modifier 한 번에 추가/제거
     void AddModifiers(IEnumerable<StatModifier> modifiers);
     void RemoveModifiers(IEnumerable<StatModifier> modifiers);
+
+    bool HasResource(StatType statType, float amount);
+    void ConsumeResource(StatType statType, float amount);
 }

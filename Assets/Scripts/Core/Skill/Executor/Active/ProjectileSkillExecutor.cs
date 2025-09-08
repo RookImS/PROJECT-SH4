@@ -10,7 +10,7 @@ public class ProjectileSkillExecutor : IActiveSkillExecutor
     /// </summary>
     /// <param name="caster">스킬을 시전한 <c>Character</c></param>
     /// <param name="skillInstance">현재 사용되고 있는 <c>RuntimeSkill</c> 인스턴스</param>
-    public void OnSkillCast(CharacterBase caster, RuntimeSkill skillInstance)
+    public void OnSkillCast(ISkillUser caster, RuntimeSkill skillInstance)
     {
         var data = skillInstance.runtimeSkillData;
         Debug.Log($"투사체 발사! 속도: {data.currentProjectileSpeed}, 크기: {data.currentProjectileSize}, 사거리: {data.currentCoreStats.range}");
