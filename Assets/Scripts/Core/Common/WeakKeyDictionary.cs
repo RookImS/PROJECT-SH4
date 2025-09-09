@@ -4,7 +4,7 @@ using System.Linq;
 namespace Sh4
 {
     /// <summary>
-    /// <see cref="Dictionary{TKey, TValue}"/>와 동일한 기능을 제공하지만 Key를 <see cref="WeakKey{T}"/>로 관리합니다.<br/>
+    /// <see cref="Dictionary{TKey, TValue}"/>와 동일한 기능을 제공하지만 <see cref="WeakKey{T}"/>타입의 인스턴스로 키를 관리합니다.<br/>
     /// 이를 통해 Key로 사용된 인스턴스에 대한 참조가 모두 유실되어 이에 연결된 Value에 접근할 수 없거나, 
     /// 반대로 Key에 의해 생긴 참조로 사용이 종료된 인스턴스를 GC가 정리하지 못하는 상황을 방지합니다.
     /// </summary>
@@ -13,11 +13,35 @@ namespace Sh4
     public class WeakKeyDictionary<TKey, TValue> : Dictionary<WeakKey<TKey>, TValue> where TKey : class
     {
 #nullable enable
+        private readonly List<TValue> _missingValues = new();
+
+        /// <summary>
+        /// Dictionary내의 모든 Key를 돌려줍니다.<br/>
+        /// 이때, Key 전체를 검사해 Key에 대한 참조가 유실된 인스턴스가 있는 경우, 
+        /// 해당 요소를 제거해서 돌려주고, 그 Key에 연결됐던 Value도 함께 돌려줍니다.
+        /// </summary>
+        /// <param name="aliveKeys">참조가 유실되지 않은 Key를 담는 객체</param>
+        /// <param name="missingValues">참조가 유실된 Key들에 연결됐던 Value들을 담는 객체</param>
+        /// <returns>모든 Key를 받아오는 것에 성공하면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/></returns>
+        public bool TryGetAllOriginalKeys(out List<TKey> aliveKeys, out List<TValue> missingValues)
+        {
+            bool allRetrieved = !CullMissingKey(out missingValues);
+            aliveKeys = Keys.Select(
+                    (weakKey) =>
+                    {
+                        weakKey.TryGetTarget(out TKey target);
+                        return target;
+                    }
+                ).ToList();
+
+            return allRetrieved;
+        }
+
         /// <summary>
         /// Key 전체를 검사해 참조가 유실된 인스턴스가 Key로 사용되는 경우, 
-        /// 해당 요소를 제거하고 그 Key에 연결된 Value를 돌려줍니다.
+        /// 해당 요소를 제거하고 그 Key에 연결됐던 Value를 돌려줍니다.
         /// </summary>
-        /// <param name="missingValues">참조가 유실된 Key들에 연결된 Value들을 담는 객체</param>
+        /// <param name="missingValues">참조가 유실된 Key들에 연결됐던 Value들을 담는 객체</param>
         /// <returns>참조가 유실된 Key가 있으면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/></returns>
         public bool CullMissingKey(out List<TValue> missingValues)
         {
@@ -26,7 +50,8 @@ namespace Sh4
             WeakKey<TKey>[] keys = Keys.ToArray();
             TValue[]? values = null;
             List<WeakKey<TKey>> missingKeys = new();
-            missingValues = new();
+            missingValues = new(_missingValues);
+            _missingValues.Clear();
 
             for (int i = 0; i < keys.Length; i++)
             {
@@ -45,8 +70,8 @@ namespace Sh4
                         values = Values.ToArray();
                     }
 
-#pragma warning disable CS8602 // null 가능 참조에 대한 역참조입니다.
                     missingKeys.Add(keys[i]);
+#pragma warning disable CS8602 // null 가능 참조에 대한 역참조입니다.
                     missingValues.Add(values[i]);
 #pragma warning restore CS8602 // null 가능 참조에 대한 역참조입니다.
                 }
