@@ -53,11 +53,11 @@ public class TestGraph :MonoBehaviour
         graph.AddEdge(goList[2], goList[1]);
         graph.AddEdge(goList[2], goList[5]);
         graph.AddEdge(goList[2], goList[3]);
-        graph.RemoveVertex(goList[4]);
 
         List<GameObject> debugReader;
         debugReader = graph.GetAdjVertices(goList[0]);
         debugReader = graph.GetAdjVertices(goList[0], 2);
+        List<Graph<GameObject>> comps = graph.Components;
     }
 
     void PrintContains(GameObject go)

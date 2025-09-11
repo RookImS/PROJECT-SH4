@@ -67,13 +67,11 @@ namespace Sh4
                     if (!hasMissing)
                     {
                         hasMissing = true;
-                        values = Values.ToArray();
+                        values ??= Values.ToArray();
                     }
 
                     missingKeys.Add(keys[i]);
-#pragma warning disable CS8602 // null 가능 참조에 대한 역참조입니다.
-                    missingValues.Add(values[i]);
-#pragma warning restore CS8602 // null 가능 참조에 대한 역참조입니다.
+                    missingValues.Add(values![i]);
                 }
             }
 

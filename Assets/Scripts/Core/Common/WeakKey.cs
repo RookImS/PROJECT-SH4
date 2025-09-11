@@ -11,6 +11,7 @@ namespace Sh4
     /// <typeparam name="T">약하게 참조할 원본 인스턴스의 타입</typeparam>
     public class WeakKey<T> where T : class
     {
+#nullable enable
         // 필드
         private readonly WeakReference<T> _weakKey;
         private readonly int _hashCode;
@@ -27,6 +28,7 @@ namespace Sh4
         }
 
         public static implicit operator WeakKey<T>(T key) => new WeakKey<T>(key);
+        public static explicit operator T(WeakKey<T> key) => key.TryGetTarget(out T target) ? target : throw new NullReferenceException("Explicit operator for T in WeakKey<T> can only be used where the referenced instance is not null.");
 
         // 메서드
         /// <summary>
