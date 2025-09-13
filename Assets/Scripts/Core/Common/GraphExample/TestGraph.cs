@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Sh4;
 using System;
+using System.Linq;
 
 public class TestGraph :MonoBehaviour
 {
@@ -15,50 +16,116 @@ public class TestGraph :MonoBehaviour
         {
             goList.Add(listObject.transform.GetChild(i).gameObject);
         }
+
+        List<Graph<GameObject>> forDebug;
+        // 일반 생성
         graph = new();
+        forDebug = graph.Components.ToList();
 
-        graph.AddVertex(goList[0]);        // 0 추가
-        PrintContains(goList[0]);
-        graph.AddVertex(goList[1]);        // 1 추가
-        graph.AddEdge(goList[0], goList[1]);    // 0, 1의 간선
-        graph.AddEdge(goList[2], goList[3]);    // 2, 3 추가 하면서 간선까지
-        graph.AddEdge(goList[3], goList[4]);    // 4 추가 하면서 3, 4의 간선
+        Debug.LogWarning("!!!!!기본 Vertex테스트!!!!!");
+        Debug.LogWarning("!!!!!기본 추가!!!!!");
+        foreach(GameObject go in goList)
+            graph.AddVertex(go);
 
-        PrintContains(goList[5]);
-        graph.RemoveVertex(goList[5]);     // 없음
-        graph.RemoveVertex(goList[1]);    // 1 삭제
+        // Debug.Log("!!!!!중복 추가!!!!!");
+        //foreach (GameObject go in goList)
+        //    graph.AddVertex(go);
 
-        graph.AddVertex(goList[5]);     // 1 추가
-        graph.AddVertex(goList[1]);     // 5 추가
-        graph.AddVertex(goList[5]);     // 이미 있음
-
-        graph.RemoveEdge(goList[2], goList[3]);     // 2, 3 간선 삭제
-        graph.RemoveEdge(goList[2], goList[3]);     // 간선 없음
-
-        graph.AddEdge(goList[2], goList[3]);        // 2, 3 간선 추가
-        graph.AddEdge(goList[2], goList[3]);        // 2, 3 이미 있는 간선
-
-        graph.Clear();
-
-        graph.AddVertex(goList[0]);
-        graph.AddVertex(goList[1]);
-        graph.AddVertex(goList[2]);
-        graph.AddVertex(goList[3]);
-        graph.AddVertex(goList[4]);
-        graph.AddVertex(goList[5]);
-        graph.AddVertex(goList[6]);
-
+        Debug.LogWarning("!!!!!기본 Edge테스트!!!!!");
+        Debug.LogWarning("!!!!!vertex 2개 존재하는 경우의 추가!!!!!");
         graph.AddEdge(goList[0], goList[1]);
         graph.AddEdge(goList[0], goList[5]);
-        graph.AddEdge(goList[2], goList[1]);
-        graph.AddEdge(goList[2], goList[5]);
-        graph.AddEdge(goList[2], goList[3]);
+        graph.AddEdge(goList[1], goList[2]);
+        graph.AddEdge(goList[1], goList[3]);
+        graph.AddEdge(goList[2], goList[4]);
+        graph.AddEdge(goList[3], goList[4]);
 
-        List<GameObject> debugReader;
-        debugReader = graph.GetAdjVertices(goList[0]);
-        debugReader = graph.GetAdjVertices(goList[0], 2);
-        List<Graph<GameObject>> comps = graph.Components;
+        Debug.LogWarning("!!!!!vertex 1개만 존재하는 경우의 추가!!!!!");
+        graph.RemoveVertex(goList[7]);
+        graph.AddEdge(goList[6], goList[7]);
+
+        Debug.LogWarning("!!!!!vertex 없는 경우의 추가!!!!!");
+        graph.RemoveVertex(goList[6]);
+        graph.RemoveVertex(goList[7]);
+        graph.AddEdge(goList[6], goList[7]);
+
+        Debug.LogWarning("!!!!!edge 삭제 테스트!!!!!");
+        Debug.LogWarning("!!!!!vertex 하나만 없는 경우!!!!!");
+        graph.RemoveVertex(goList[6]);
+        graph.RemoveEdge(goList[6], goList[7]);
+        graph.AddEdge(goList[6], goList[7]);
+        Debug.LogWarning("!!!!!vertex 둘다 없는 경우!!!!!");
+        graph.RemoveVertex(goList[7]);
+        graph.RemoveVertex(goList[6]);
+        graph.RemoveEdge(goList[6], goList[7]);
+        Debug.LogWarning("!!!!!기본 삭제!!!!!");
+        graph.AddEdge(goList[6], goList[7]);
+        graph.RemoveEdge(goList[6], goList[7]);
+
+        Debug.LogWarning("!!!!!절단점 테스트!!!!!");
+        List<GameObject> arttemp = graph.Articulations.ToList();
+        graph.RemoveVertex(goList[0]);
+        graph.AddEdge(goList[0], goList[5]);
+        graph.AddEdge(goList[1], goList[0]);
+        Debug.LogWarning("!!!!!절단선 테스트!!!!!");
+        List<(GameObject, GameObject, int)> bridgetemp = graph.Bridges.ToList();
+        graph.RemoveEdge(goList[0], goList[1]);
+        graph.RemoveEdge(goList[0], goList[5]);
+        //Debug.LogWarning("!!!!!중복 추가!!!!!");
+        //graph.AddEdge(goList[6], goList[7]);
+
+        //Debug.LogWarning("!!!!!EmptyIdx 작동 테스트!!!!!");
+        //graph.RemoveVertex(goList[6]);
+        //Debug.Log($"현재 Edge개수 : " + graph.EdgeCount);
+        //graph.RemoveVertex(goList[5]);
+        //Debug.Log($"현재 Edge개수 : " + graph.EdgeCount);
+
+        //graph.AddVertex(goList[6]);
+        //graph.AddVertex(goList[5]);
+        //graph.AddEdge(goList[0], goList[5]);
+
+        //graph.RemoveVertex(goList[6]);
+        //Debug.Log($"현재 Edge개수 : " + graph.EdgeCount);
+
+        //Debug.LogWarning("!!!!!Contains작동 테스트!!!!!");
+        //foreach (GameObject go1 in goList)
+        //{
+        //    Debug.Log($"{go1} vertex : " + graph.ContainsVertex(go1));
+        //    foreach (GameObject go2 in goList)
+        //    {
+        //        Debug.Log($"{{{go1} - {go2}}} edge : " + graph.ContainsEdge(go1, go2));
+        //    }
+        //}
+
+        //Debug.LogWarning("!!!!!인접 테스트!!!!!");
+        //for (int i = 1; i < 7; i++)
+        //{
+        //    List<GameObject> temp = graph.GetAdjVertices(goList[5], i);
+
+        //    string tempStr = "";
+        //    foreach (GameObject go in temp)
+        //    {
+        //        tempStr += (go.ToString() + " ");
+        //    }
+        //    Debug.Log($"깊이 {i}의 인접 노드 : " + tempStr);
+        //}
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     void PrintContains(GameObject go)
     {
@@ -70,7 +137,7 @@ public class TestGraph :MonoBehaviour
 
     public void VerticeTest()
     {
-        List<GameObject> vertices = graph.Vertices;
+        List<GameObject> vertices = graph.Vertices.ToList();
         graph.Print();
     }
 
@@ -83,10 +150,10 @@ public class TestGraph :MonoBehaviour
         graph.Clear();
     }
 
-    public void Verify()
-    {
-        graph.Verify();
-    }
+    //public void Verify()
+    //{
+    //    graph.Verify();
+    //}
 
     public void DestroyGameObject(int i)
     {
