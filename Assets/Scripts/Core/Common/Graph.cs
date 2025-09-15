@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Sh4
 {
+    /// <summary>
+    /// <typeparamref name="T"/>의 인스턴스를 정점으로 사용하는 무방향 그래프 자료구조입니다.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class Graph<T> : IComparable<Graph<T>> where T : class, new()
     {
 #nullable enable
@@ -21,13 +24,13 @@ namespace Sh4
         private HashSet<EdgeIdx>? _bridgeIdxSet = null;
 
         // 생성자
-        public Graph() { Debug.Log($"[Initializer] : 새로운 그래프 생성 {this}"); }
+        public Graph() { UnityEditorTools.Log($"[Initializer] : 새로운 그래프 생성 {this}"); }
 
         public Graph(IEnumerable<T> vertices) : this(vertices, null) { }
 
         public Graph(IEnumerable<T> vertices, IEnumerable<Edge>? edges)
         {
-            Debug.Log($"[Initializer] : 입력을 활용해 새로운 그래프 생성 : {this}");
+            UnityEditorTools.Log($"[Initializer] : 입력을 활용해 새로운 그래프 생성 : {this}");
             foreach (T item in vertices)
             {
                 AddVertex(item);
@@ -153,13 +156,13 @@ namespace Sh4
                 adjMatStr += '\n';
             }
 
-            Debug.Log($"Dict: {dictListStr}");
-            Debug.Log(adjMatStr);
+            UnityEditorTools.Log($"Dict: {dictListStr}");
+            UnityEditorTools.Log(adjMatStr);
         }
 
         public void Clear()
         {
-            Debug.Log($"[Clear] : {this} 그래프 초기화");
+            UnityEditorTools.Log($"[Clear] : {this} 그래프 초기화");
             // vertex
             _itemIdxDict.Clear();
             _reverseDict.Clear();
@@ -179,10 +182,10 @@ namespace Sh4
         {
             if (_itemIdxDict.ContainsKey(item))
             {
-                Debug.Log($"[AddVertex] : {item} 정점이 {_itemIdxDict[item]}에 이미 있습니다.");
+                UnityEditorTools.Log($"[AddVertex] : {item} 정점이 {_itemIdxDict[item]}에 이미 있습니다.");
                 return false;
             }
-            Debug.Log($"[AddVertex] : {item} 정점 추가 시작");
+            UnityEditorTools.Log($"[AddVertex] : {item} 정점 추가 시작");
 
             int idx = GetEmptyIdx();
 
@@ -193,12 +196,12 @@ namespace Sh4
             // edge
             _adjIdxListDict.Add(idx, new());
 
-            Debug.Log($"[AddVertex] : {item}를 {_itemIdxDict[item]}로 정점 추가");
+            UnityEditorTools.Log($"[AddVertex] : {item}를 {_itemIdxDict[item]}로 정점 추가");
 
             // component
             if (_components is not null)
             {
-                Debug.Log($"[AddVertex] : 정점 추가에 따른 component 추가");
+                UnityEditorTools.Log($"[AddVertex] : 정점 추가에 따른 component 추가");
                 _components.Add(new Graph<T>(new List<T> { item }));
             }
 
@@ -209,15 +212,15 @@ namespace Sh4
         {
             if (!_itemIdxDict.TryGetValue(item, out int targetIdx))
             {
-                Debug.Log($"[RemoveVertex] : {item} 정점이 없습니다.");
+                UnityEditorTools.Log($"[RemoveVertex] : {item} 정점이 없습니다.");
                 return false;
             }
-            Debug.Log($"[RemoveVertex] : {item} 정점 삭제 시작");
+            UnityEditorTools.Log($"[RemoveVertex] : {item} 정점 삭제 시작");
 
             // component
             if (_components is not null)
             {
-                Debug.Log($"[RemoveVertex] : 정점 삭제에 따른 component 갱신");
+                UnityEditorTools.Log($"[RemoveVertex] : 정점 삭제에 따른 component 갱신");
                 bool isArticulation = IsArticulationIdx(targetIdx);
                 foreach (Graph<T> sub in _components)
                 {
@@ -225,14 +228,14 @@ namespace Sh4
                     {
                         if (sub._itemIdxDict.Count == 0)
                         {
-                            Debug.Log($"[RemoveVertex] : 정점 삭제에 따른 component 삭제");
+                            UnityEditorTools.Log($"[RemoveVertex] : 정점 삭제에 따른 component 삭제");
                             _components.Remove(sub);
                             break;
                         }
 
                         if (isArticulation)
                         {
-                            Debug.Log($"[RemoveVertex] : 정점 삭제에 따른 component 분리");
+                            UnityEditorTools.Log($"[RemoveVertex] : 정점 삭제에 따른 component 분리");
                             _components.AddRange(sub.Components);
                             _components.Remove(sub);
                         }
@@ -256,7 +259,7 @@ namespace Sh4
             _reverseDict.Remove(targetIdx);
             _emptyIdxMinHeap.Enqueue(targetIdx, targetIdx);
 
-            Debug.Log($"[RemoveVertex] : {targetIdx}의 {item} 정점 삭제");
+            UnityEditorTools.Log($"[RemoveVertex] : {targetIdx}의 {item} 정점 삭제");
 
             return true;
         }
@@ -273,22 +276,22 @@ namespace Sh4
 
             if (_adjIdxListDict[fromIdx].Contains(toIdx))
             {
-                Debug.Log($"[AddEdge] : {{{_itemIdxDict[from]} - {_itemIdxDict[to]}}} 이미 존재하는 간선입니다.");
+                UnityEditorTools.Log($"[AddEdge] : {{{_itemIdxDict[from]} - {_itemIdxDict[to]}}} 이미 존재하는 간선입니다.");
                 return false;
             }
-            Debug.Log($"[AddEdge] : {{{from} - {to}}} 간선 추가 시작");
+            UnityEditorTools.Log($"[AddEdge] : {{{from} - {to}}} 간선 추가 시작");
 
             // edge
             _adjIdxListDict[fromIdx].Add(toIdx);
             _adjIdxListDict[toIdx].Add(fromIdx);
             _edgeIdxWeightDict.Add((fromIdx, toIdx), weight);
 
-            Debug.Log($"[AddEdge] : {{{_itemIdxDict[from]} - {_itemIdxDict[to]}}} 간선 추가");
+            UnityEditorTools.Log($"[AddEdge] : {{{_itemIdxDict[from]} - {_itemIdxDict[to]}}} 간선 추가");
 
             // component
             if (_components is not null)
             {
-                Debug.Log($"[AddEdge] : 간선 추가에 따른 component 갱신");
+                UnityEditorTools.Log($"[AddEdge] : 간선 추가에 따른 component 갱신");
                 List<Graph<T>> targetComponents = new();
                 foreach (Graph<T> sub in _components)
                 {
@@ -307,7 +310,7 @@ namespace Sh4
                 targetComponents.Sort();
                 if (targetComponents.Count == 2)
                 {
-                    Debug.Log($"[AddEdge] : 간선 추가에 따른 component 병합");
+                    UnityEditorTools.Log($"[AddEdge] : 간선 추가에 따른 component 병합");
                     targetComponents[1].UnionWith(targetComponents[0]);
                     _components.Remove(targetComponents[0]);
                 }
@@ -325,29 +328,29 @@ namespace Sh4
 
             if (!_itemIdxDict.TryGetValue(from, out fromIdx))
             {
-                Debug.Log($"[RemoveEdge] : {from} 정점이 없습니다.");
+                UnityEditorTools.Log($"[RemoveEdge] : {from} 정점이 없습니다.");
                 return false;
             }
 
             if (!_itemIdxDict.TryGetValue(to, out toIdx))
             {
-                Debug.Log($"[RemoveEdge] : {to} 정점이 없습니다.");
+                UnityEditorTools.Log($"[RemoveEdge] : {to} 정점이 없습니다.");
                 return false;
             }
 
             if (!_adjIdxListDict[fromIdx].Remove(toIdx) || !_adjIdxListDict[toIdx].Remove(fromIdx))
             {
-                Debug.Log($"[RemoveEdge] : {{{fromIdx} - {toIdx}}} 존재하지 않는 간선입니다.");
+                UnityEditorTools.Log($"[RemoveEdge] : {{{fromIdx} - {toIdx}}} 존재하지 않는 간선입니다.");
                 return false;
             }
-            Debug.Log($"[RemoveEdge] : {{{from} - {to}}} 간선 삭제 시작");
+            UnityEditorTools.Log($"[RemoveEdge] : {{{from} - {to}}} 간선 삭제 시작");
 
             EdgeIdx edgeIdx = (fromIdx, toIdx);
 
             // component
             if (_components is not null)
             {
-                Debug.Log($"[RemoveEdge] : 간선 삭제에 따른 component 갱신");
+                UnityEditorTools.Log($"[RemoveEdge] : 간선 삭제에 따른 component 갱신");
                 bool isBridge = IsBridgeIdx(edgeIdx);
                 foreach (Graph<T> sub in _components)
                 {
@@ -355,7 +358,7 @@ namespace Sh4
                     {
                         if (isBridge)
                         {
-                            Debug.Log($"[RemoveEdge] : 간선 삭제에 따른 component 분리");
+                            UnityEditorTools.Log($"[RemoveEdge] : 간선 삭제에 따른 component 분리");
                             _components.AddRange(sub.Components);
                             _components.Remove(sub);
                         }
@@ -369,7 +372,7 @@ namespace Sh4
             // edge
             _edgeIdxWeightDict.Remove(edgeIdx);
 
-            Debug.Log($"[RemoveEdge] : {{{fromIdx} - {toIdx}}} 간선 삭제");
+            UnityEditorTools.Log($"[RemoveEdge] : {{{fromIdx} - {toIdx}}} 간선 삭제");
 
             return true;
         }
@@ -396,7 +399,7 @@ namespace Sh4
 
             EnsureValid();
 
-            Debug.Log($"[GetAdjVertices] : {item} 인접 {depth} 깊이의 정점 검색");
+            UnityEditorTools.Log($"[GetAdjVertices] : {item} 인접 {depth} 깊이의 정점 검색");
             int targetIdx = _itemIdxDict[item];
             List<int> adjIdxs = BFS(targetIdx, depth);
             adjIdxs.Remove(targetIdx);
@@ -473,7 +476,7 @@ namespace Sh4
 
             EnsureValid();
 
-            Debug.Log($"[GetEdgesOf] : {item}이 연관된 간선 검색");
+            UnityEditorTools.Log($"[GetEdgesOf] : {item}이 연관된 간선 검색");
             int targetIdx = _itemIdxDict[item];
 
             return _adjIdxListDict[targetIdx].Select(
@@ -506,7 +509,7 @@ namespace Sh4
         {
             EnsureValid();
 
-            Debug.Log($"[UnionWith] : 그래프 병합");
+            UnityEditorTools.Log($"[UnionWith] : 그래프 병합");
 
             foreach (T item in graph.Vertices)
             {
@@ -573,7 +576,7 @@ namespace Sh4
 
         private List<Graph<T>> EnsureComponents()
         {
-            Debug.Log("[EnsureComponents] : 그래프 내 컴포넌트를 구분합니다.");
+            UnityEditorTools.Log("[EnsureComponents] : 그래프 내 컴포넌트를 구분합니다.");
 
             EnsureValid();
 
@@ -613,13 +616,13 @@ namespace Sh4
 
         private void EnsureArticulationAndBridge()
         {
-            Debug.Log("[EnsureArticulationAndBridge] : 그래프 내 단절점, 단절선을 찾습니다.");
+            UnityEditorTools.Log("[EnsureArticulationAndBridge] : 그래프 내 단절점, 단절선을 찾습니다.");
 
             EnsureValid();
 
             if (_articulationIdxSet is not null && _bridgeIdxSet is not null)
             {
-                Debug.Log("[EnsureArticulationAndBridge] : 이미 찾은 단절점, 단절선이 있습니다.");
+                UnityEditorTools.Log("[EnsureArticulationAndBridge] : 이미 찾은 단절점, 단절선이 있습니다.");
                 return;
             }
 
@@ -770,7 +773,7 @@ namespace Sh4
         /// <returns>키에 문제가 있어서 이에 알맞게 그래프를 수정했으면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/></returns>
         private bool EnsureValid()
         {
-            Debug.Log($"[EnsureValid] : 실행");
+            UnityEditorTools.Log($"[EnsureValid] : 실행");
             if (_itemIdxDict.CullMissingKey(out List<int> missingIdxs))
             {
                 InvalidateIndex(missingIdxs);
@@ -784,7 +787,7 @@ namespace Sh4
         {
             foreach (int idx in missingIdxs)
             {
-                Debug.Log($"[InvalidateIndex] : {idx}가 key를 잃었습니다.");
+                UnityEditorTools.Log($"[InvalidateIndex] : {idx}가 key를 잃었습니다.");
 
                 // component
                 _components = null;

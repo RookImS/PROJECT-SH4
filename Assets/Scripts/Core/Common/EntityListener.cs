@@ -134,7 +134,7 @@ namespace Sh4
         /// </summary>
         protected virtual void ExecuteInSubscribe()
         {
-            Debug.Log($"[{GetType().Name}] Subscribed");
+            UnityEditorTools.Log($"[{GetType().Name}] Subscribed");
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace Sh4
         /// </summary>
         protected virtual void ExecuteInUnsubscribe()
         {
-            Debug.Log($"[{GetType().Name}] Unsubscribed");
+            UnityEditorTools.Log($"[{GetType().Name}] Unsubscribed");
         }
 
         #region IObserver
@@ -159,14 +159,14 @@ namespace Sh4
         {
             CompletedAction?.Invoke();
             Unsubscribe();
-            Debug.Log($"[{GetType().Name}] Completed");
+            UnityEditorTools.Log($"[{GetType().Name}] Completed");
         }
 
         /// <summary>
         /// 구독 중인 <see cref="EntityBroadcaster{T}"/> 객체에서 에러를 발생 시켰을 때, 해야할 내용을 구현합니다.
         /// </summary>
         /// <param name="e">발생한 오류에 대한 인스턴스</param>
-        public virtual void OnError(Exception e) => Debug.LogError($"[{GetType().Name}] Error: {e}");
+        public virtual void OnError(Exception e) => UnityEditorTools.LogError($"[{GetType().Name}] Error: {e}");
         #endregion
 
         #region IDisposable

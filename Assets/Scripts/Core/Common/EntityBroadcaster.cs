@@ -91,7 +91,7 @@ namespace Sh4
         /// </summary>
         private void OnBroadcast(object sender, T entity)
         {
-            Debug.Log($"[{GetType().Name}] Broadcasting \"{sender} class - {entity.GetType().Name} \" to {_listeners.Count} listeners.");
+            UnityEditorTools.Log($"[{GetType().Name}] Broadcasting \"{sender} class - {entity.GetType().Name} \" to {_listeners.Count} listeners.");
 
             foreach (var listener in _listeners.ToArray())
             {
@@ -109,7 +109,7 @@ namespace Sh4
         /// </summary>
         private void OnCompleted()
         {
-            Debug.Log($"[{GetType().Name}] Broadcasting complete to {_listeners.Count} listeners.");
+            UnityEditorTools.Log($"[{GetType().Name}] Broadcasting complete to {_listeners.Count} listeners.");
 
             foreach (var listener in _listeners.ToArray())
             {
@@ -128,7 +128,7 @@ namespace Sh4
         /// </summary>
         private void OnError(Exception e)
         {
-            Debug.Log($"[{GetType().Name}] Broadcasting error to {_listeners.Count} listeners.");
+            UnityEditorTools.Log($"[{GetType().Name}] Broadcasting error to {_listeners.Count} listeners.");
 
             foreach (var listener in _listeners.ToArray())
             {
