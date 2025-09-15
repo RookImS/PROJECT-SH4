@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Sh4
 {
     /// <summary>
     /// <see cref="EntityListener{T}"/>의 사용자 인터페이스입니다. 사용 후 반드시 <see cref="IDisposable.Dispose"/>를 호출하여 리소스를 해제해야 합니다.
     /// </summary>
-    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 형식</typeparam>
+    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 타입</typeparam>
     public interface IEntityListner<T> : IDisposable where T : Entity
     {
         /// <summary>
@@ -34,10 +33,10 @@ namespace Sh4
     }
 
     /// <summary>
-    /// <typeparamref name="T"/>형식 데이터에 대한 알림을 보내주는 <see cref="EntityBroadcaster{T}"/> 객체를 구독할 수 있고, 
+    /// <typeparamref name="T"/> 타입 데이터에 대한 알림을 보내주는 <see cref="EntityBroadcaster{T}"/> 객체를 구독할 수 있고, 
     /// 각 알림에 대해 적합한 기능을 수행하는 객체에 대한 클래스입니다.
     /// </summary>
-    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 형식</typeparam>
+    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 타입</typeparam>
     public class EntityListener<T> : IEntityListner<T>, IObserver<T> where T : Entity
     {
 #nullable enable
@@ -59,7 +58,7 @@ namespace Sh4
         /// </summary>
         /// <param name="nextActions"><see cref="OnNext(T)"/>가 사용될 때, 작동할 메서드</param>
         /// <param name="completedActions"><see cref="OnCompleted"/>가 사용될 때, 작동할 메서드</param>
-        /// <returns>생성된 객체의 <see cref="IEntityListner{T}"/>형식 인터페이스</returns>
+        /// <returns>생성된 객체의 <see cref="IEntityListner{T}"/> 타입 인터페이스</returns>
         public static IEntityListner<T> Create(List<Action<T>> nextActions, List<Action>? completedActions = null)
         {
             var listener = new EntityListener<T>();

@@ -4,7 +4,7 @@ using System.Linq;
 namespace Sh4
 {
     /// <summary>
-    /// <see cref="Dictionary{TKey, TValue}"/>와 동일한 기능을 제공하지만 <see cref="WeakKey{T}"/>타입의 인스턴스로 키를 관리합니다.<br/>
+    /// <see cref="Dictionary{TKey, TValue}"/>와 동일한 기능을 제공하지만 <see cref="WeakKey{T}"/> 타입의 인스턴스로 키를 관리합니다.<br/>
     /// 이를 통해 Key로 사용된 인스턴스에 대한 참조가 모두 유실되어 이에 연결된 Value에 접근할 수 없거나, 
     /// 반대로 Key에 의해 생긴 참조로 사용이 종료된 인스턴스를 GC가 정리하지 못하는 상황을 방지합니다.
     /// </summary>

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Sh4
 {
     /// <summary>
     /// <see cref="EntityBroadcaster{T}"/>의 사용자 인터페이스입니다.
     /// </summary>
-    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 형식</typeparam>
+    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 타입</typeparam>
     public interface IEntityBroadcaster<T> where T : Entity
     {
         /// <summary>
@@ -33,9 +32,9 @@ namespace Sh4
     }
 
     /// <summary>
-    /// 구독 중인 <see cref="EntityListener{T}"/> 객체들에 <typeparamref name="T"/>형식 데이터에 대한 알림을 제공하는 싱글톤 인스턴스입니다.
+    /// 구독 중인 <see cref="EntityListener{T}"/> 객체들에 <typeparamref name="T"/> 타입 데이터에 대한 알림을 제공하는 싱글톤 인스턴스입니다.
     /// </summary>
-    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 형식</typeparam>
+    /// <typeparam name="T"><see cref="EntityListener{T}"/>, <see cref="EntityBroadcaster{T}"/> 객체가 서로 주고 받을 데이터의 타입</typeparam>
     public class EntityBroadcaster<T> : Singleton<EntityBroadcaster<T>>, IEntityBroadcaster<T>, IObservable<T> where T : Entity
     {
 #nullable enable
@@ -87,7 +86,7 @@ namespace Sh4
 
         // private 메서드
         /// <summary>
-        /// 이 객체를 구독 중인 모든 <see cref="EntityListener{T}"/> 객체에 <typeparamref name="T"/>형식 데이터에 대한 알림을 제공합니다.
+        /// 이 객체를 구독 중인 모든 <see cref="EntityListener{T}"/> 객체에 <typeparamref name="T"/> 타입 데이터에 대한 알림을 제공합니다.
         /// </summary>
         private void OnBroadcast(object sender, T entity)
         {

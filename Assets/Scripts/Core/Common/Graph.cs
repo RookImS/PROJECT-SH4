@@ -5,9 +5,9 @@ using System.Linq;
 namespace Sh4
 {
     /// <summary>
-    /// <typeparamref name="T"/>의 인스턴스를 정점으로 사용하는 무방향 그래프 자료구조입니다.
+    /// <typeparamref name="T"/> 타입 객체를 정점으로 사용하는 무방향 그래프 자료구조입니다.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">정점으로 사용될 객체의 클래스</typeparam>
     public class Graph<T> : IComparable<Graph<T>> where T : class, new()
     {
 #nullable enable
@@ -89,6 +89,9 @@ namespace Sh4
             }
         }
 
+        /// <summary>
+        /// 그래프의 크기는 정점, 간선의 개수 합입니다.
+        /// </summary>
         public int Size
         {
             get
@@ -123,14 +126,17 @@ namespace Sh4
         }
 
         // public 메서드
+        /// <summary>
+        /// 그래프의 정보를 출력합니다.
+        /// </summary>
         public void Print()
         {
-            string dictListStr = "[Dict]\n";
+            string dictListStr = "[IdxItemDict]\n";
             string adjMatStr = $"[Adj Matrix] Edge의 수 : {_edgeIdxWeightDict.Count}\n";
 
-            foreach (var keyValue in _itemIdxDict)
+            foreach (var kvp in _itemIdxDict)
             {
-                dictListStr += "{[" + keyValue.Value + "], [" + keyValue.Key + "]}\n";
+                dictListStr += $"{{key : [{kvp.Value,3}], value : [{kvp.Key}]}}\n";
             }
 
             List<int> idxList = _adjIdxListDict.Keys.ToList();
@@ -141,12 +147,15 @@ namespace Sh4
 
             for (int i = 0; i < idxList.Count; i++)
             {
-                adjMatStr += $"{idxList[i],-6}";
+                int rowIdx = idxList[i];
+                adjMatStr += $"{rowIdx,-6}";
                 for (int j = 0; j < idxList.Count; j++)
                 {
-                    if (_adjIdxListDict[idxList[i]].Contains(j))
+                    int colIdx = idxList[j];
+
+                    if (_adjIdxListDict[rowIdx].Contains(colIdx))
                     {
-                        adjMatStr += $"{"1",-6}";
+                        adjMatStr += $"{_edgeIdxWeightDict[(EdgeIdx)(rowIdx, colIdx)], -6}";
                     }
                     else
                     {
@@ -156,7 +165,7 @@ namespace Sh4
                 adjMatStr += '\n';
             }
 
-            UnityEditorTools.Log($"Dict: {dictListStr}");
+            UnityEditorTools.Log(dictListStr);
             UnityEditorTools.Log(adjMatStr);
         }
 
@@ -178,6 +187,10 @@ namespace Sh4
             _bridgeIdxSet = null;
         }
 
+        /// <summary>
+        /// 주어진 객체를 정점으로 추가합니다.
+        /// </summary>
+        /// <returns>정점이 이미 존재하면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool AddVertex(T item)
         {
             if (_itemIdxDict.ContainsKey(item))
@@ -208,14 +221,18 @@ namespace Sh4
             return true;
         }
 
-        public bool RemoveVertex(T item)
+        /// <summary>
+        /// 주어진 정점을 삭제합니다.
+        /// </summary>
+        /// <returns>정점이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
+        public bool RemoveVertex(T vertex)
         {
-            if (!_itemIdxDict.TryGetValue(item, out int targetIdx))
+            if (!_itemIdxDict.TryGetValue(vertex, out int targetIdx))
             {
-                UnityEditorTools.Log($"[RemoveVertex] : {item} 정점이 없습니다.");
+                UnityEditorTools.Log($"[RemoveVertex] : {vertex} 정점이 없습니다.");
                 return false;
             }
-            UnityEditorTools.Log($"[RemoveVertex] : {item} 정점 삭제 시작");
+            UnityEditorTools.Log($"[RemoveVertex] : {vertex} 정점 삭제 시작");
 
             // component
             if (_components is not null)
@@ -224,7 +241,7 @@ namespace Sh4
                 bool isArticulation = IsArticulationIdx(targetIdx);
                 foreach (Graph<T> sub in _components)
                 {
-                    if (sub.RemoveVertex(item))
+                    if (sub.RemoveVertex(vertex))
                     {
                         if (sub._itemIdxDict.Count == 0)
                         {
@@ -255,17 +272,29 @@ namespace Sh4
             _adjIdxListDict.Remove(targetIdx);
 
             // vertex
-            _itemIdxDict.Remove(item);
+            _itemIdxDict.Remove(vertex);
             _reverseDict.Remove(targetIdx);
             _emptyIdxMinHeap.Enqueue(targetIdx, targetIdx);
 
-            UnityEditorTools.Log($"[RemoveVertex] : {targetIdx}의 {item} 정점 삭제");
+            UnityEditorTools.Log($"[RemoveVertex] : {targetIdx}의 {vertex} 정점 삭제");
 
             return true;
         }
 
+        /// <summary>
+        /// 주어진 객체를 간선으로 추가합니다.<br/>
+        /// 만약 주어진 객체의 양끝 정점 객체 중 정점으로 존재하지 않는 객체가 있으면, 그 객체를 정점으로 추가한 후 간선을 추가합니다.
+        /// </summary>
+        /// <returns>간선이 이미 존재하면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool AddEdge(Edge edge) => AddEdge(edge.From, edge.To, edge.Weight);
 
+        /// <summary>
+        /// 주어진 객체들에 대한 정점을 잇는 간선을 추가합니다.<br/>
+        /// 만약 주어진 객체 중 정점으로 존재하지 않는 객체가 있으면, 그 객체를 정점으로 추가한 후 간선을 추가합니다.
+        /// </summary>
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <returns>간선이 이미 존재하면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool AddEdge(T from, T to, int weight = 1)
         {
             AddVertex(from);
@@ -321,6 +350,18 @@ namespace Sh4
             return true;
         }
 
+        /// <summary>
+        /// 주어진 간선을 삭제합니다.
+        /// </summary>
+        /// <returns>간선이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
+        public bool RemoveEdge(Edge edge) => RemoveEdge(edge.From, edge.To);
+
+        /// <summary>
+        /// 주어진 정점들을 잇는 간선을 삭제합니다.
+        /// </summary>
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <returns>정점들을 잇는 간선이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool RemoveEdge(T from, T to)
         {
             int fromIdx = 0;
@@ -377,30 +418,43 @@ namespace Sh4
             return true;
         }
 
-        public bool ContainsVertex(T item) =>
-            _itemIdxDict.ContainsKey(item);
+        /// <returns>주어진 정점이 존재하면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/></returns>
+        public bool ContainsVertex(T vertex) =>
+            _itemIdxDict.ContainsKey(vertex);
 
+        /// <returns>주어진 간선이 존재하면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/></returns>
         public bool ContainsEdge(Edge edge) => ContainsEdge(edge.From, edge.To);
 
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <returns>주어진 정점들을 잇는 간선이 존재하면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/></returns>
         public bool ContainsEdge(T from, T to) =>
             ContainsVertex(from) && ContainsVertex(to) && _adjIdxListDict[_itemIdxDict[from]].Contains(_itemIdxDict[to]);
 
-        public IEnumerable<T> GetAdjVertices(T item, int depth = 1)
+        /// <summary>
+        /// 주어진 정점에 대해 특정 깊이 이내의 모든 정점을 찾아 반환합니다.
+        /// </summary>
+        /// <param name="vertex">조사를 시작하고자 하는 정점</param>
+        /// <param name="depth">주어진 정점으로부터 허용될 조사 깊이</param>
+        /// <returns>조사할 깊이 내에 존재하는 정점 모음의 인터페이스</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public IEnumerable<T> GetAdjVertices(T vertex, int depth = 1)
         {
             if (depth < 1)
             {
-                throw new ArgumentException("Depth must be greater than or equal to 1.");
+                throw new ArgumentOutOfRangeException("Depth must be greater than or equal to 1.");
             }
 
-            if (!ContainsVertex(item))
+            if (!ContainsVertex(vertex))
             {
-                new ArgumentException($"The argument must be vertex of graph.");
+                throw new ArgumentException("The argument must be vertex of graph.");
             }
 
             EnsureValid();
 
-            UnityEditorTools.Log($"[GetAdjVertices] : {item} 인접 {depth} 깊이의 정점 검색");
-            int targetIdx = _itemIdxDict[item];
+            UnityEditorTools.Log($"[GetAdjVertices] : {vertex} 인접 {depth} 깊이의 정점 검색");
+            int targetIdx = _itemIdxDict[vertex];
             List<int> adjIdxs = BFS(targetIdx, depth);
             adjIdxs.Remove(targetIdx);
 
@@ -409,26 +463,47 @@ namespace Sh4
                 );
         }
 
-        public bool TryGetAdjVertices(T item, out IEnumerable<T>? adjVertices) => TryGetAdjVertices(item, 1, out adjVertices);
+        /// <summary>
+        /// 주어진 정점에 대해 1칸 깊이 이내의 모든 정점을 찾아 반환합니다.<br/>
+        /// 실패 시 예외처리를 하는 대신 <see langword="false"/>를 반환하고, <paramref name="adjVertices"/>는 <see langword="null"/>이 됩니다.
+        /// </summary>
+        /// <param name="vertex">조사를 시작하고자 하는 정점</param>
+        /// <param name="adjVertices">조사할 깊이 내에 존재하는 정점의 리스트</param>
+        /// <returns>정점이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
+        public bool TryGetAdjVertices(T vertex, out List<T>? adjVertices) => TryGetAdjVertices(vertex, 1, out adjVertices);
 
-        public bool TryGetAdjVertices(T item, int depth, out IEnumerable<T>? adjVertices)
+        /// <summary>
+        /// 주어진 정점에 대해 특정 깊이 이내의 모든 정점을 찾아 반환합니다.<br/>
+        /// 실패 시 예외처리를 하는 대신 <see langword="false"/>를 반환하고, <paramref name="adjVertices"/>는 <see langword="null"/>이 됩니다.
+        /// </summary>
+        /// <param name="vertex">조사를 시작하고자 하는 정점</param>
+        /// <param name="depth">주어진 정점으로부터 허용될 조사 깊이</param>
+        /// <param name="adjVertices">조사할 깊이 내에 존재하는 정점의 리스트</param>
+        /// <returns>정점이 존재하지 않거나, 깊이가 1 미만이면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
+        public bool TryGetAdjVertices(T vertex, int depth, out List<T>? adjVertices)
         {
-            if (depth < 1 || !ContainsVertex(item))
+            if (depth < 1 || !ContainsVertex(vertex))
             {
                 adjVertices = null;
                 return false;
             }
 
-            adjVertices = GetAdjVertices(item, depth);
+            adjVertices = GetAdjVertices(vertex, depth).ToList();
 
             return true;
         }
 
+        /// <summary>
+        /// 주어진 정점들을 잇는 간선의 가중치를 반환합니다.
+        /// </summary>
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <exception cref="ArgumentException"></exception>
         public int GetEdgeWeight(T from, T to)
         {
             if (!ContainsEdge(from, to))
             {
-                throw new ArgumentException($"The arguments must be edge of graph.");
+                throw new ArgumentException("The arguments must be edge of graph.");
             }
 
             int fromIdx = _itemIdxDict[from];
@@ -437,6 +512,13 @@ namespace Sh4
             return _edgeIdxWeightDict[(EdgeIdx)(fromIdx, toIdx)];
         }
 
+        /// <summary>
+        /// 주어진 정점들을 잇는 간선의 가중치를 반환합니다.<br/>
+        /// 실패 시 예외처리를 하는 대신 <see langword="false"/>를 반환하고, <paramref name="weight"/>는 <see langword="null"/>이 됩니다.
+        /// </summary>
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <returns>정점들을 잇는 간선이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool TryGetEdgeWeight(T from, T to, out int? weight)
         {
             if(!ContainsEdge(from, to))
@@ -450,8 +532,18 @@ namespace Sh4
             return true;
         }
 
+        /// <summary>
+        /// 주어진 간선의 가중치를 설정합니다.
+        /// </summary>
+        /// <returns>간선이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool SetEdgeWeight(Edge edge, int weight) => SetEdgeWeight(edge.From, edge.To, weight);
 
+        /// <summary>
+        /// 주어진 정점들을 잇는 간선의 가중치를 설정합니다.
+        /// </summary>
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <returns>정점들을 잇는 간선이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
         public bool SetEdgeWeight(T from, T to, int weight)
         {
             if (!ContainsEdge(from, to))
@@ -467,44 +559,65 @@ namespace Sh4
             return true;
         }
 
-        public IEnumerable<Edge> GetEdgesOf(T item)
+        /// <summary>
+        /// 주어진 정점에 연결된 간선을 반환합니다.
+        /// </summary>
+        /// <returns>정점에 연결된 간선 모음의 인터페이스</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public IEnumerable<Edge> GetEdgesOf(T vertex)
         {
-            if (!ContainsVertex(item))
+            if (!ContainsVertex(vertex))
             {
-                new ArgumentException($"The argument must be vertex of graph.");
+                throw new ArgumentException("The argument must be vertex of graph.");
             }
 
             EnsureValid();
 
-            UnityEditorTools.Log($"[GetEdgesOf] : {item}이 연관된 간선 검색");
-            int targetIdx = _itemIdxDict[item];
+            UnityEditorTools.Log($"[GetEdgesOf] : {vertex}이 연관된 간선 검색");
+            int targetIdx = _itemIdxDict[vertex];
 
             return _adjIdxListDict[targetIdx].Select(
                 (int adjIdx) => (Edge)((T)_reverseDict[targetIdx], (T)_reverseDict[adjIdx], _edgeIdxWeightDict[(EdgeIdx)(targetIdx, adjIdx)])
                 );
         }
 
-        public bool TryGetEdgesOf(T item, out IEnumerable<Edge>? edges)
+        /// <summary>
+        /// 주어진 정점에 연결된 간선을 반환합니다.<br/>
+        /// 실패 시 예외처리를 하는 대신 <see langword="false"/>를 반환하고, <paramref name="edges"/>는 <see langword="null"/>이 됩니다.
+        /// </summary>
+        /// <param name="edges">정점에 연결된 간선의 리스트</param>
+        /// <returns>정점이 존재하지 않으면 <see langword="false"/>, 그렇지 않으면 <see langword="true"/></returns>
+        public bool TryGetEdgesOf(T vertex, out List<Edge>? edges)
         {
-            if (!ContainsVertex(item))
+            if (!ContainsVertex(vertex))
             {
                 edges = null;
                 return false;
             }
 
-            edges = GetEdgesOf(item);
+            edges = GetEdgesOf(vertex).ToList();
 
             return true;
         }
 
-        public bool IsArticulation(T item) =>
-            IsArticulationIdx(_itemIdxDict[item]);
+        /// <returns>주어진 정점이 articulation point이면 <see langword="true"/>, 그렇지 않거나 정점이 존재하지 않으면 <see langword="false"/></returns>
+        public bool IsArticulation(T vertex) =>
+            IsArticulationIdx(_itemIdxDict[vertex]);
 
-        public bool IsBridge(Edge edge) => IsBridge(edge.From, edge.To);
+        /// <returns>주어진 간선이 bridge이면 <see langword="true"/>, 그렇지 않거나 간선이 존재하지 않으면 <see langword="false"/></returns>
+        public bool IsBridge(Edge edge) => 
+            IsBridge(edge.From, edge.To);
 
+        /// <param name="from">간선의 시작 정점</param>
+        /// <param name="to">간선의 끝 정점</param>
+        /// <returns>주어진 정점들을 잇는 간선이 bridge이면 <see langword="true"/>, 그렇지 않거나 정점들을 잇는 간선이 존재하지 않으면 <see langword="false"/></returns>
         public bool IsBridge(T from, T to) =>
             IsBridgeIdx((_itemIdxDict[from], _itemIdxDict[to]));
 
+        /// <summary>
+        /// 주어진 그래프를 메서드를 사용한 그래프에 합집합 연산으로 병합합니다.
+        /// </summary>
+        /// <returns>메서드를 실행한 그래프</returns>
         public Graph<T> UnionWith(Graph<T> graph)
         {
             EnsureValid();
@@ -525,6 +638,10 @@ namespace Sh4
         }
 
         // public static 메서드
+        /// <summary>
+        /// 주어진 그래프들을 합집합 연산으로 병합합니다.
+        /// </summary>
+        /// <returns>합집합 연산의 결과로 나온 그래프</returns>
         public static Graph<T> Union(Graph<T> a, Graph<T> b) =>
             new Graph<T>(a).UnionWith(b);
 
@@ -817,6 +934,14 @@ namespace Sh4
         }
 
         // 내부 클래스
+        /// <summary>
+        /// 간선의 정보를 담고 있습니다.
+        /// </summary>
+        /// <remarks>
+        /// (<typeparamref name="T"/> from, <typeparamref name="T"/> to) 튜플은 이 구조체로 암시적 변환할 수 있습니다. 이때의 weight은 1로 설정됩니다.<br/>
+        /// (<typeparamref name="T"/> from, <typeparamref name="T"/> to, <see langword="int"/> weight) 튜플은 이 구조체로 암시적 변환할 수 있습니다.<br/>
+        /// 이 구조체는 (<typeparamref name="T"/> from, <typeparamref name="T"/> to, <see langword="int"/> weight) 튜플로 명시적 변활할 수 있습니다.
+        /// </remarks>
         public readonly struct Edge
         {
             private readonly T _from;

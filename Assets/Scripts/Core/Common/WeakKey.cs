@@ -4,11 +4,14 @@ namespace Sh4
 {
     /// <summary>
     /// 이 타입으로 생성된 객체를 <see cref="Dictionary{TKey, TValue}"/>의 Key로 사용하면, 
-    /// 그 객체를 만들때 사용된 <typeparamref name="T"/>형식 원본 인스턴스가 Key로 쓰이는 것으로 간주됩니다.<br/>
-    /// 또한, 이 타입의 객체는 원본 인스턴스를 약하게 참조하고 있어서, 객체의 참조가 원본 인스턴스에 대한 GC의 작동에 영향을 주지 않습니다.<br/>
-    /// 이 타입은 <typeparamref name="T"/>형식에 대한 암시적 변환을 지원합니다.
+    /// 그 객체를 만들때 사용된 <typeparamref name="T"/> 타입 원본 인스턴스가 Key로 쓰이는 것으로 간주됩니다.<br/>
+    /// 또한, 이 타입의 객체는 원본 인스턴스를 약하게 참조하고 있어서, 객체의 참조가 원본 인스턴스에 대한 GC의 작동에 영향을 주지 않습니다.
     /// </summary>
     /// <typeparam name="T">약하게 참조할 원본 인스턴스의 타입</typeparam>
+    /// <remarks>
+    /// <typeparamref name="T"/> 타입은 이 클래스로 암시적 변환할 수 있습니다.<br/>
+    /// 이 클래스는 <typeparamref name="T"/> 타입으로 명시적 변활할 수 있습니다.
+    /// </remarks>
     public class WeakKey<T> where T : class
     {
 #nullable enable
@@ -28,6 +31,7 @@ namespace Sh4
         }
 
         public static implicit operator WeakKey<T>(T key) => new WeakKey<T>(key);
+
         public static explicit operator T(WeakKey<T> key) => key.TryGetTarget(out T target) ? target : throw new NullReferenceException("Explicit operator for T in WeakKey<T> can only be used where the referenced instance is not null.");
 
         // 메서드

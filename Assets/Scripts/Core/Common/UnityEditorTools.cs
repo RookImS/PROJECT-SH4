@@ -17,9 +17,9 @@ namespace Sh4
         public static void Warning(object message, Object context) => Debug.LogWarning(message, context);
 
         [System.Diagnostics.Conditional("UNITY_EDITOR_LOG"), System.Diagnostics.Conditional("UNITY_EDITOR_WARNING"), System.Diagnostics.Conditional("UNITY_EDITOR_ERROR")]
-        public static void Error(object message) => Debug.LogError(message);
+        public static void LogError(object message) => Debug.LogError(message);
 
         [System.Diagnostics.Conditional("UNITY_EDITOR_LOG"), System.Diagnostics.Conditional("UNITY_EDITOR_WARNING"), System.Diagnostics.Conditional("UNITY_EDITOR_ERROR")]
-        public static void Error(object message, Object context) => Debug.LogError(message, context);
+        public static void LogError(object message, Object context) => Debug.LogError(message, context);
     }
 }

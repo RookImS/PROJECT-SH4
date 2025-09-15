@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using Sh4;
-using System;
 using System.Linq;
 
 public class TestGraph :MonoBehaviour
@@ -9,7 +8,6 @@ public class TestGraph :MonoBehaviour
     private Graph<GameObject> graph;
     public GameObject listObject;
     public List<GameObject> goList = new();
-
     private void Awake()
     {
         for (int i = 0; i < listObject.transform.childCount; i++)
@@ -68,7 +66,7 @@ public class TestGraph :MonoBehaviour
         graph.AddEdge(goList[0], goList[5]);
         graph.AddEdge(goList[1], goList[0]);
         Debug.LogWarning("!!!!!절단선 테스트!!!!!");
-        List<(GameObject, GameObject, int)> bridgetemp = graph.Bridges.ToList();
+        List<Graph<GameObject>.Edge> bridgetemp = graph.Bridges.ToList();
         graph.RemoveEdge(goList[0], goList[1]);
         graph.RemoveEdge(goList[0], goList[5]);
         //Debug.LogWarning("!!!!!중복 추가!!!!!");
@@ -112,8 +110,10 @@ public class TestGraph :MonoBehaviour
 
     }
 
-
-
+    private void Start()
+    {
+        graph.Print();
+    }
 
 
 
