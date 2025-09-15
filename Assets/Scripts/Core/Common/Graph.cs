@@ -25,7 +25,7 @@ namespace Sh4
 
         public Graph(IEnumerable<T> vertices) : this(vertices, null) { }
 
-        public Graph(IEnumerable<T> vertices, IEnumerable<(T from, T to, int weight)>? edges)
+        public Graph(IEnumerable<T> vertices, IEnumerable<Edge>? edges)
         {
             Debug.Log($"[Initializer] : 입력을 활용해 새로운 그래프 생성 : {this}");
             foreach (T item in vertices)
@@ -35,9 +35,9 @@ namespace Sh4
 
             if (edges is not null)
             {
-                foreach ((T from, T to, int weight) in edges)
+                foreach (Edge edge in edges)
                 {
-                    AddEdge(from, to, weight);
+                    AddEdge(edge);
                 }
             }
         }
@@ -57,13 +57,13 @@ namespace Sh4
             }
         }
 
-        public IEnumerable<(T from, T to, int weight)> Edges
+        public IEnumerable<Edge> Edges
         {
             get
             {
                 EnsureValid();
                 return _edgeIdxWeightDict.Keys.Select(
-                    (EdgeIdx edgeIdx) => ((T)_reverseDict[edgeIdx.Idx1], (T)_reverseDict[edgeIdx.Idx2], _edgeIdxWeightDict[edgeIdx])
+                    (EdgeIdx edgeIdx) => (Edge)((T)_reverseDict[edgeIdx.Idx1], (T)_reverseDict[edgeIdx.Idx2], _edgeIdxWeightDict[edgeIdx])
                     );
             }
         }
@@ -86,6 +86,15 @@ namespace Sh4
             }
         }
 
+        public int Size
+        {
+            get
+            {
+                EnsureValid();
+                return _itemIdxDict.Count + _edgeIdxWeightDict.Count;
+            }
+        }
+
         public IEnumerable<Graph<T>> Components { get => _components ??= EnsureComponents(); }
 
         public IEnumerable<T> Articulations
@@ -99,13 +108,13 @@ namespace Sh4
             }
         }
 
-        public IEnumerable<(T from, T to, int weight)> Bridges
+        public IEnumerable<Edge> Bridges
         {
             get
             {
                 EnsureArticulationAndBridge();
                 return _bridgeIdxSet!.Select(
-                    (EdgeIdx edgeIdx) => ((T)_reverseDict[edgeIdx.Idx1], (T)_reverseDict[edgeIdx.Idx2], _edgeIdxWeightDict[edgeIdx])
+                    (EdgeIdx edgeIdx) => (Edge)((T)_reverseDict[edgeIdx.Idx1], (T)_reverseDict[edgeIdx.Idx2], _edgeIdxWeightDict[edgeIdx])
                     );
             }
         }
@@ -252,6 +261,8 @@ namespace Sh4
             return true;
         }
 
+        public bool AddEdge(Edge edge) => AddEdge(edge.From, edge.To, edge.Weight);
+
         public bool AddEdge(T from, T to, int weight = 1)
         {
             AddVertex(from);
@@ -366,14 +377,21 @@ namespace Sh4
         public bool ContainsVertex(T item) =>
             _itemIdxDict.ContainsKey(item);
 
+        public bool ContainsEdge(Edge edge) => ContainsEdge(edge.From, edge.To);
+
         public bool ContainsEdge(T from, T to) =>
             ContainsVertex(from) && ContainsVertex(to) && _adjIdxListDict[_itemIdxDict[from]].Contains(_itemIdxDict[to]);
 
-        public List<T> GetAdjVertices(T item, int depth = 1)
+        public IEnumerable<T> GetAdjVertices(T item, int depth = 1)
         {
             if (depth < 1)
             {
                 throw new ArgumentException("Depth must be greater than or equal to 1.");
+            }
+
+            if (!ContainsVertex(item))
+            {
+                new ArgumentException($"The argument must be vertex of graph.");
             }
 
             EnsureValid();
@@ -385,23 +403,101 @@ namespace Sh4
 
             return adjIdxs.Select(
                 (int adjIdx) => (T)_reverseDict[adjIdx]
-                ).ToList();
+                );
         }
 
-        public List<(T, T, int)> GetEdgesOf(T item)
+        public bool TryGetAdjVertices(T item, out IEnumerable<T>? adjVertices) => TryGetAdjVertices(item, 1, out adjVertices);
+
+        public bool TryGetAdjVertices(T item, int depth, out IEnumerable<T>? adjVertices)
         {
+            if (depth < 1 || !ContainsVertex(item))
+            {
+                adjVertices = null;
+                return false;
+            }
+
+            adjVertices = GetAdjVertices(item, depth);
+
+            return true;
+        }
+
+        public int GetEdgeWeight(T from, T to)
+        {
+            if (!ContainsEdge(from, to))
+            {
+                throw new ArgumentException($"The arguments must be edge of graph.");
+            }
+
+            int fromIdx = _itemIdxDict[from];
+            int toIdx = _itemIdxDict[to];
+
+            return _edgeIdxWeightDict[(EdgeIdx)(fromIdx, toIdx)];
+        }
+
+        public bool TryGetEdgeWeight(T from, T to, out int? weight)
+        {
+            if(!ContainsEdge(from, to))
+            {
+                weight = null;
+                return false;
+            }
+
+            weight = GetEdgeWeight(from, to);
+            
+            return true;
+        }
+
+        public bool SetEdgeWeight(Edge edge, int weight) => SetEdgeWeight(edge.From, edge.To, weight);
+
+        public bool SetEdgeWeight(T from, T to, int weight)
+        {
+            if (!ContainsEdge(from, to))
+            {
+                return false;
+            }
+
+            int fromIdx = _itemIdxDict[from];
+            int toIdx = _itemIdxDict[to];
+
+            _edgeIdxWeightDict[(EdgeIdx)(fromIdx, toIdx)] = weight;
+
+            return true;
+        }
+
+        public IEnumerable<Edge> GetEdgesOf(T item)
+        {
+            if (!ContainsVertex(item))
+            {
+                new ArgumentException($"The argument must be vertex of graph.");
+            }
+
             EnsureValid();
 
             Debug.Log($"[GetEdgesOf] : {item}이 연관된 간선 검색");
             int targetIdx = _itemIdxDict[item];
 
             return _adjIdxListDict[targetIdx].Select(
-                (int adjIdx) => ((T)_reverseDict[targetIdx], (T)_reverseDict[adjIdx], _edgeIdxWeightDict[(EdgeIdx)(targetIdx, adjIdx)])
-                ).ToList();
+                (int adjIdx) => (Edge)((T)_reverseDict[targetIdx], (T)_reverseDict[adjIdx], _edgeIdxWeightDict[(EdgeIdx)(targetIdx, adjIdx)])
+                );
+        }
+
+        public bool TryGetEdgesOf(T item, out IEnumerable<Edge>? edges)
+        {
+            if (!ContainsVertex(item))
+            {
+                edges = null;
+                return false;
+            }
+
+            edges = GetEdgesOf(item);
+
+            return true;
         }
 
         public bool IsArticulation(T item) =>
             IsArticulationIdx(_itemIdxDict[item]);
+
+        public bool IsBridge(Edge edge) => IsBridge(edge.From, edge.To);
 
         public bool IsBridge(T from, T to) =>
             IsBridgeIdx((_itemIdxDict[from], _itemIdxDict[to]));
@@ -417,9 +513,9 @@ namespace Sh4
                 AddVertex(item);
             }
 
-            foreach ((T from, T to, int weight) in graph.Edges)
+            foreach (Edge edge in graph.Edges)
             {
-                AddEdge(from, to, weight);
+                AddEdge(edge);
             }
 
             return this;
@@ -494,7 +590,7 @@ namespace Sh4
                 List<int> compVertexIdxs = BFS(i, -1);
 
                 List<T> compVertices = new(compVertexIdxs.Count);
-                List<(T, T, int)> compEdges = new();
+                List<Edge> compEdges = new();
 
                 foreach (int idx in compVertexIdxs)
                 {
@@ -550,9 +646,9 @@ namespace Sh4
                         (_articulationIdxSet ??= new()).Add(_itemIdxDict[item]);
                     }
 
-                    foreach ((T from, T to, int weight) in bridges)
+                    foreach (Edge edge in bridges)
                     {
-                        (_bridgeIdxSet ??= new()).Add((_itemIdxDict[from], _itemIdxDict[to]));
+                        (_bridgeIdxSet ??= new()).Add((_itemIdxDict[edge.From], _itemIdxDict[edge.To]));
                     }
                 }
             }
@@ -714,13 +810,39 @@ namespace Sh4
             if (other == null)
                 return 1;
 
-            return (_itemIdxDict.Count + _edgeIdxWeightDict.Count).CompareTo(other._itemIdxDict.Count + other._edgeIdxWeightDict.Count);
+            return Size.CompareTo(other.Size);
         }
 
-        // 전체 순회(enumerable)
-
-
         // 내부 클래스
+        public readonly struct Edge
+        {
+            private readonly T _from;
+            private readonly T _to;
+            private readonly int _weight;
+
+            public Edge(T from, T to, int weight = 1)
+            {
+                _from = from;
+                _to = to;
+                _weight = weight;
+            }
+
+            public T From => _from;
+            public T To => _to;
+            public int Weight => _weight;
+
+            public override string ToString()
+            {
+                return string.Format($"({_from} - {_to}, {_weight})");
+            }
+
+            public static implicit operator Edge((T from, T to) tuple) => new(tuple.from, tuple.to);
+
+            public static implicit operator Edge((T from, T to, int weight) tuple) => new(tuple.from, tuple.to, tuple.weight);
+
+            public static explicit operator (T, T, int)(Edge edge) => (edge._from, edge._to, edge._weight);
+        }
+
         private readonly struct EdgeIdx
         {
             private readonly int _idx1;
@@ -740,12 +862,11 @@ namespace Sh4
                 }
             }
 
-            public int Idx1 { get => _idx1; }
-            public int Idx2 { get => _idx2; }
-
+            public int Idx1 => _idx1;
+            public int Idx2 => _idx2;
             public override string ToString()
             {
-                return string.Format($"({_idx1}, {_idx2})");
+                return string.Format($"({_idx1} - {_idx2})");
             }
 
             public override int GetHashCode() =>
@@ -761,7 +882,7 @@ namespace Sh4
 
             public static bool operator !=(EdgeIdx lhs, EdgeIdx rhs) => !(lhs == rhs);
 
-            public static implicit operator EdgeIdx((int, int) tuple) => new(tuple.Item1, tuple.Item2);
+            public static implicit operator EdgeIdx((int idx1, int idx2) tuple) => new(tuple.idx1, tuple.idx2);
 
             public static explicit operator (int, int)(EdgeIdx edgeIdx) => (edgeIdx._idx1, edgeIdx._idx2);
         }
