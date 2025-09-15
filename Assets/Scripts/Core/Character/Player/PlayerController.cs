@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     #region Variables
@@ -20,9 +20,11 @@ public class PlayerController : MonoBehaviour
     private CharacterBase _characterBase;
     private IStatProvider _statProvider;
     private Animator _animator; // 애니메이션 컨트롤러
-    private Rigidbody _rigidBody;
+    private CharacterController _characterController;
     private InputSystem_Actions _inputActions; // 생성된 입력 액션 클래스
     private Vector2 _moveInput; // 입력받은 이동 방향 (Vector2)
+
+    private float _verticalVelocity;
     #endregion
 
     #region Unity Methods
@@ -35,7 +37,7 @@ public class PlayerController : MonoBehaviour
             _statProvider = GetComponent<IStatProvider>(); // 폴백
 
         _animator = GetComponent<Animator>();
-        _rigidBody = GetComponent<Rigidbody>();
+        _characterController = GetComponent<CharacterController>();
         _inputActions = new InputSystem_Actions();
     }
 
@@ -55,14 +57,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        float animatorSpeed = 0f;
-        if (_characterBase != null)
-            animatorSpeed = _moveInput.magnitude;
+        float animatorSpeed = _moveInput.magnitude;
         _animator.SetFloat(ANI_SPEED, animatorSpeed);
-    }
 
-    void FixedUpdate() // 물리 업데이트는 FixedUpdate에서 처리
-    {
         MovePlayer();
     }
 
@@ -141,11 +138,22 @@ public class PlayerController : MonoBehaviour
             // 목표 방향을 바라보는 회전값(Quaternion)을 계산
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             // Rigidbody의 회전을 부드럽게 변경
-            Quaternion newRotation = Quaternion.Slerp(_rigidBody.rotation, targetRotation, _rotationSpeed * Time.fixedDeltaTime);
-            _rigidBody.MoveRotation(newRotation);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
         }
 
-        _rigidBody.MovePosition(_rigidBody.position + moveDirection * _movementSpeed * Time.fixedDeltaTime);
+        // --- 이동 로직 ---
+
+        // 중력 적용
+        if (_characterController.isGrounded && _verticalVelocity < 0f)
+            _verticalVelocity = -2f; // 지면에 붙어있게 살짝 눌러줌
+        else
+            _verticalVelocity += Physics.gravity.y * Time.deltaTime;
+
+        // 이동 벡터
+        Vector3 horizontal = moveDirection * _movementSpeed;
+        Vector3 vertical = Vector3.up * _verticalVelocity;
+
+        _characterController.Move((horizontal + vertical) * Time.deltaTime);
     }
     #endregion
 
