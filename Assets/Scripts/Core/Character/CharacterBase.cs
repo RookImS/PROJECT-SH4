@@ -22,8 +22,8 @@ public class CharacterBase : MonoBehaviour, IStatProvider, ISkillUser
     public Transform Transform => this.transform;
 
     private Animator _animator;
-    private Rigidbody _rigidBody;
-    private Collider _collider;
+    private CharacterController _characterController;   // 캐릭터 이동을 위한 CharacterController
+    private Collider _collider;                         // 캐릭터의 피격 처리를 위한 Collider  
 
     private bool _isDead = false;
 
@@ -36,7 +36,7 @@ public class CharacterBase : MonoBehaviour, IStatProvider, ISkillUser
         SkillCaster = GetComponent<SkillCaster>();
 
         _animator = GetComponent<Animator>();
-        _rigidBody = GetComponent<Rigidbody>();
+        _characterController = GetComponent<CharacterController>();
         _collider = GetComponent<Collider>();
 
         this.statSystem.OnDeath += HandleDeath;
@@ -67,7 +67,7 @@ public class CharacterBase : MonoBehaviour, IStatProvider, ISkillUser
         _isDead = true;
 
         _animator.SetTrigger("Death"); // 사망 애니메이션 트리거
-        _rigidBody.isKinematic = true; // 물리 효과 비활성화
+        _characterController.enabled = false; // 캐릭터 컨트롤러 비활성화
     }
 
     #region Stat Methods(IStatProvider 구현)
